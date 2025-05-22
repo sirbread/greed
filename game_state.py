@@ -12,9 +12,10 @@ current_round = {
     "submissions": []
 }
 
-def add_submission(user_id: int, number_selected: int):
+def add_submission(user_id: int, user_name: str, number_selected: int):
     current_round["submissions"].append({
         "user_id": user_id,
+        "user_name": user_name,
         "number_selected": number_selected
 
     })
@@ -31,6 +32,7 @@ def calculate_scores():
         score = number/count
         results.append({
             "user_id": sub["user_id"],
+            "user_name": sub["user_name"],
             "number": number,
             "score": score
         })

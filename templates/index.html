@@ -5,10 +5,18 @@
 </head>
 <body>
     <h1>pick a number (1-10, inclusive, integer)</h1>
-      <input type="number" id="numberInput" min="1" max="10">
-  <button onclick="submit()">Submit</button>
 
-    <div id="status"></div>
+    <div id="setup">
+        <label>Name: <input type="text" id="nameInput"></label>
+        <button onclick="saveName()">Save</button>
+    </div>
+
+    <div id="game" style="display:none;">
+        <input type="number" id="numberInput" min="1" max="10">
+        <button onclick="submit()">Submit</button>
+        <div id="status"></div>
+    </div>
+    
     <div id="scoreboard">
         <h2>scores</h2>
         <pre id="scores">Loading...</pre>
@@ -16,39 +24,61 @@
 
     <script>
         const userId = Math.floor(Math.random() * 100000)
-            function submit() {
-                const value = parseInt(document.getElementById("numberInput").value)
-                if (isNaN(value) || value < 1 || value > 10) {
-                    document.getElementById("status").textContent = "Please enter a number from 1 to 10"
-                    return
-                }
-                fetch("/submit/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ user_id: userId, number_selected: value })
-                }) 
-                .then(res => res.json())
-                .then(() => {
-                    document.getElementById("status").textContent = "Submitted number " +value
-                    document.getElementById("numberInput").value = ""
-                    loadScores()
-                })
+        
+        function saveName() {
+            const name = document.getElementById("nameInput").value.trim()
+            if (!name) {
+                alert("Please enter a name")
+                return
+            }
+            localStorage.setItem("username", name)
+            document.getElementById("setup").style.display = "none"
+            document.getElementById("game").style.display = "block"
+        }
+
+        function submit() {
+            const name = localStorage.getItem("username")
+            const value = parseInt(document.getElementById("numberInput").value)
+            if (isNaN(value) || value < 1 || value > 10) {
+                document.getElementById("status").textContent = "Please enter a number from 1 to 10"
+                return
             }
 
-            function loadScores() {
-                fetch("/scores/")
-                    .then(res => res.json())
-                    .then(scores => {
-                        document.getElementById("scores").textContent =
-                            scores.map(s => "user " + s.user_id + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
+            fetch("/submit/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: userId, 
+                    user_name: name,
+                    number_selected: value 
+                })
+            }) 
+            .then(res => res.json())
+            .then(() => {
+                document.getElementById("status").textContent = "Submitted number " +value
+                document.getElementById("numberInput").value = ""
+                loadScores()
+            })
+        }
 
+        function loadScores() {
+            fetch("/scores/")
+                .then(res => res.json())
+                .then(scores => {
+                    document.getElementById("scores").textContent =
+                        scores.map(s => s.user_name + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
                     })
+            }
+
+            const saved = localStorage.getItem("username")
+            if (saved) {
+                document.getElementById("nameInput").value = saved
+                document.getElementById("setup").style.display = "none" 
+                document.getElementById("game").style.display = "block"
             }
 
             setInterval(loadScores, 5000)
             loadScores()
-        
-
     </script>
 </body>
 </html>

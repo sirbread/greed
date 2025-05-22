@@ -11,6 +11,7 @@ app = FastAPI()
 
 class Submission(BaseModel):
     user_id: int
+    user_name: str
     number_selected: int
 
 @app.post("/submit/")
@@ -18,7 +19,7 @@ def submit(data: Submission):
     now = datetime.now(mst)
     if now > current_round["end_time"]:
         reset_round()
-    add_submission(data.user_id, data.number_selected)
+    add_submission(data.user_id, data.user_name, data.number_selected)
     return {"status": "submitted"}
 
 @app.get("/scores/")
