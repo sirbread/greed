@@ -2,6 +2,20 @@
 <html>
 <head>
     <title>greed</title>
+    <style>
+        #timer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            font-size: 1.2em;
+            color: #333;
+            background: #fffffff0;
+            padding: 8px 0;
+            z-index: 100;
+        }
+    </style>
 </head>
 <body>
     <h1>pick a number (1-10, inclusive, integer)</h1>
@@ -21,6 +35,8 @@
         <h2>scores</h2>
         <pre id="scores">Loading...</pre>
     </div>
+
+    <div id="timer">Loading time...</div>
 
     <script>
         let userId = localStorage.getItem("userId")
@@ -75,17 +91,30 @@
                 })
         }
 
+        let lastRoundId = null;
+
+        function updateTimerDisplay(secondsLeft) {
+            let timerDiv = document.getElementById("timer");
+            let min = Math.floor(secondsLeft / 60);
+            let sec = secondsLeft % 60;
+            timerDiv.textContent = `Time left this round: ${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
         function checkRoundStatus() {
             fetch("/round/")
                 .then(res => res.json())
                 .then(data => {
-                    if (data.time_left_minutes <= 0) {
-                        document.getElementById("scoreboard").style.display = "block"
-                        loadScores()
-                    } else {
-                        document.getElementById("scoreboard").style.display = "none"
+                    updateTimerDisplay(data.time_left_seconds || 0);
+                    if (lastRoundId !== data.round_id) {
+                        lastRoundId = data.round_id;
+                        loadScores();
                     }
-                })
+                    if ((data.time_left_seconds || 0) <= 0) {
+                        document.getElementById("scoreboard").style.display = "block";
+                    } else {
+                        document.getElementById("scoreboard").style.display = "none";
+                    }
+                });
         }
 
         function prefillAwaitingSubmission() {
@@ -99,7 +128,6 @@
                 })
         }
 
-        // On load, restore UI state and pre-fill awaiting score if possible
         const saved = localStorage.getItem("username")
         if (saved) {
             document.getElementById("nameInput").value = saved
@@ -108,7 +136,7 @@
             prefillAwaitingSubmission()
         }
 
-        setInterval(checkRoundStatus, 10000)
+        setInterval(checkRoundStatus, 1000)
         checkRoundStatus()
     </script>
 </body>

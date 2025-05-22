@@ -31,7 +31,6 @@ def home(request: Request):
 def submit(data: Submission):
     now = datetime.now(mst)
     if now > current_round["end_time"]:
-        # finalize last round, then reset for new round
         finalize_round()
         reset_round()
     add_awaiting_submission(data.user_id, data.user_name, data.number_selected)
@@ -39,8 +38,7 @@ def submit(data: Submission):
 
 @app.get("/scores/")
 def scores():
-    # if round has ended, show final scores
-    # why tf is my keyboard sqeaking
+    # If round has ended, show final scores
     now = datetime.now(mst)
     if now > current_round["end_time"]:
         finalize_round()
@@ -50,18 +48,13 @@ def scores():
 def get_round_info():
     now = datetime.now(mst)
     remaining = current_round["end_time"] - now
+    total_seconds = int(remaining.total_seconds())
+    if total_seconds < 0:
+        total_seconds = 0
     return {
         "round_id": current_round["round_id"],
-        "time_left_minutes": int(remaining.total_seconds() // 60)
+        "time_left_seconds": total_seconds
     }
-
-@app.get("/awaiting/all")
-def all_awaiting():
-    return current_round["awaiting_submissions"]
-
-@app.get("/final/all")
-def all_final():
-    return current_round["final_submissions"]
 
 @app.get("/awaiting/")
 def awaiting(user_id: int):
@@ -70,3 +63,11 @@ def awaiting(user_id: int):
         return {"user_id": sub["user_id"], "number_selected": sub["number_selected"]}
     else:
         return {}
+
+@app.get("/awaiting/all")
+def all_awaiting():
+    return current_round["awaiting_submissions"]
+
+@app.get("/final/all")
+def all_final():
+    return current_round["final_submissions"]

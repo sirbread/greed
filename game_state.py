@@ -3,17 +3,18 @@ from collections import defaultdict
 import pytz
 
 mst = pytz.timezone("America/Denver")
+ROUND_DURATION = 60 #seconds
 
 current_round = {
     "round_id": 1,
-    "end_time": datetime.now(mst) + timedelta(minutes=2),
-    "awaiting_submissions": [],  # i hold submissions 
-    "final_submissions": [],   
+    "end_time": datetime.now(mst) + timedelta(seconds=60),
+    "awaiting_submissions": [],  
+    "final_submissions": [],    
 }
 
 def reset_round():
     current_round["round_id"] += 1
-    current_round["end_time"] = datetime.now(mst) + timedelta(hours=5)
+    current_round["end_time"] = datetime.now(mst) + timedelta(seconds=60)
     current_round["awaiting_submissions"] = []
     current_round["final_submissions"] = []
 
@@ -36,12 +37,10 @@ def get_awaiting_submission(user_id: int):
     return None
 
 def finalize_round():
-    # move all awaiting submissions to final submissions
     current_round["final_submissions"] = current_round["awaiting_submissions"].copy()
     current_round["awaiting_submissions"] = []
 
 def calculate_scores():
-    # only use final shits
     counts = defaultdict(int)
     for sub in current_round["final_submissions"]:
         counts[sub["number_selected"]] += 1
@@ -50,7 +49,7 @@ def calculate_scores():
     for sub in current_round["final_submissions"]:
         number = sub["number_selected"]
         count = counts[number]
-        score = number / count
+        score = number / count if count > 0 else 0
         results.append({
             "user_id": sub["user_id"],
             "user_name": sub["user_name"],
