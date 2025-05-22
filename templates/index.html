@@ -57,7 +57,6 @@
             .then(() => {
                 document.getElementById("status").textContent = "Submitted number " +value
                 document.getElementById("numberInput").value = ""
-                loadScores()
             })
         }
 
@@ -68,17 +67,30 @@
                     document.getElementById("scores").textContent =
                         scores.map(s => s.user_name + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
                     })
-            }
+        }
 
-            const saved = localStorage.getItem("username")
-            if (saved) {
-                document.getElementById("nameInput").value = saved
-                document.getElementById("setup").style.display = "none" 
-                document.getElementById("game").style.display = "block"
-            }
+        function checkRoundStatus() {
+            fetch("/round/")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.time_left_minutes <= 0) {
+                        document.getElementById("scoreboard").style.display = "block"
+                        loadScores()
+                    } else {
+                        document.getElementById("scoreboard").style.display = "none"
+                    }
+                })
+        }
 
-            setInterval(loadScores, 5000)
-            loadScores()
+        const saved = localStorage.getItem("username")
+        if (saved) {
+            document.getElementById("nameInput").value = saved
+            document.getElementById("setup").style.display = "none" 
+            document.getElementById("game").style.display = "block"
+        }
+
+        setInterval(checkRoundStatus, 10000)
+        checkRoundStatus()
     </script>
 </body>
 </html>
