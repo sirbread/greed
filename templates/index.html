@@ -18,6 +18,10 @@
         #scoreboard {
             margin-top: 24px;
         }
+        #input-message {
+            color: rgb(255, 0, 0);
+            margin-top: 0.5em;
+        }
     </style>
 </head>
 <body>
@@ -31,6 +35,7 @@
     <div id="game" style="display:none;">
         <input type="number" id="numberInput" min="1" max="10">
         <button onclick="submit()">Submit</button>
+        <div id="input-message"></div>
         <div id="status"></div>
     </div>
     
@@ -50,6 +55,7 @@
         userId = parseInt(userId)
 
         let lastRoundId = null;
+        let firstAwaitingPrefillDone = false;
 
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
@@ -66,10 +72,12 @@
         function submit() {
             const name = localStorage.getItem("username")
             const value = parseInt(document.getElementById("numberInput").value)
+            const inputMsgDiv = document.getElementById("input-message");
             if (isNaN(value) || value < 1 || value > 10) {
-                document.getElementById("status").textContent = "Please enter a number from 1 to 10"
+                inputMsgDiv.textContent = "Please enter a number from 1 to 10"
                 return
             }
+            inputMsgDiv.textContent = "";
 
             fetch("/submit/", {
                 method: "POST",
@@ -79,10 +87,9 @@
                     user_name: name,
                     number_selected: value 
                 })
-            }) 
+            })
             .then(res => res.json())
             .then(() => {
-                document.getElementById("status").textContent = "Submitted number " + value
                 document.getElementById("numberInput").value = ""
             })
         }
@@ -115,21 +122,27 @@
                     if (lastRoundId !== data.round_id) {
                         lastRoundId = data.round_id;
                         loadScores();
-                        document.getElementById("status").textContent = "";
                         document.getElementById("numberInput").value = "";
+                        document.getElementById("status").textContent = "";
+                        document.getElementById("input-message").textContent = "";
+                        firstAwaitingPrefillDone = false;
                     }
                 });
         }
 
-        function prefillAwaitingSubmission() {
+        function pollAwaitingSubmission() {
             fetch("/awaiting/?user_id=" + userId)
                 .then(res => res.json())
                 .then(data => {
+                    const statusDiv = document.getElementById("status");
                     if (data && data.number_selected !== undefined) {
-                        document.getElementById("numberInput").value = data.number_selected
-                        document.getElementById("status").textContent = "(You have an awaiting submission for this round)"
+                        statusDiv.textContent = "Submitted number: " + data.number_selected;
+                        if (!firstAwaitingPrefillDone) {
+                            document.getElementById("numberInput").value = data.number_selected;
+                            firstAwaitingPrefillDone = true;
+                        }
                     } else {
-                        document.getElementById("status").textContent = "";
+                        statusDiv.textContent = "";
                     }
                 })
         }
@@ -142,9 +155,16 @@
             prefillAwaitingSubmission()
         }
 
+        function prefillAwaitingSubmission() {
+            firstAwaitingPrefillDone = false;
+            pollAwaitingSubmission(); 
+        }
+
         setInterval(checkRoundStatus, 1000)
+        setInterval(pollAwaitingSubmission, 1000)
         loadScores()
         checkRoundStatus()
+        pollAwaitingSubmission()
     </script>
 </body>
 </html>
