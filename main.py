@@ -55,6 +55,14 @@ def get_round_info():
         "time_left_minutes": int(remaining.total_seconds() // 60)
     }
 
+@app.get("/awaiting/all")
+def all_awaiting():
+    return current_round["awaiting_submissions"]
+
+@app.get("/final/all")
+def all_final():
+    return current_round["final_submissions"]
+
 @app.get("/awaiting/")
 def awaiting(user_id: int):
     sub = get_awaiting_submission(user_id)

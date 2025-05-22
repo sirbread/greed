@@ -30,7 +30,6 @@
         }
         userId = parseInt(userId)
 
-        
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
             if (!name) {
@@ -40,6 +39,7 @@
             localStorage.setItem("username", name)
             document.getElementById("setup").style.display = "none"
             document.getElementById("game").style.display = "block"
+            prefillAwaitingSubmission()
         }
 
         function submit() {
@@ -61,7 +61,7 @@
             }) 
             .then(res => res.json())
             .then(() => {
-                document.getElementById("status").textContent = "Submitted number " +value
+                document.getElementById("status").textContent = "Submitted number " + value
                 document.getElementById("numberInput").value = ""
             })
         }
@@ -72,7 +72,7 @@
                 .then(scores => {
                     document.getElementById("scores").textContent =
                         scores.map(s => s.user_name + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
-                    })
+                })
         }
 
         function checkRoundStatus() {
@@ -88,11 +88,24 @@
                 })
         }
 
+        function prefillAwaitingSubmission() {
+            fetch("/awaiting/?user_id=" + userId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.number_selected !== undefined) {
+                        document.getElementById("numberInput").value = data.number_selected
+                        document.getElementById("status").textContent = "(You have an awaiting submission for this round)"
+                    }
+                })
+        }
+
+        // On load, restore UI state and pre-fill awaiting score if possible
         const saved = localStorage.getItem("username")
         if (saved) {
             document.getElementById("nameInput").value = saved
             document.getElementById("setup").style.display = "none" 
             document.getElementById("game").style.display = "block"
+            prefillAwaitingSubmission()
         }
 
         setInterval(checkRoundStatus, 10000)
