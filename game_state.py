@@ -6,7 +6,7 @@ mst = pytz.timezone("America/Denver")
 
 current_round = {
     "round_id": 1,
-    "end_time": datetime.now(mst) + timedelta(hours=5),
+    "end_time": datetime.now(mst) + timedelta(minutes=2),
     "submissions": []
 }
 
@@ -16,6 +16,12 @@ def reset_round():
     current_round["submissions"] = []
 
 def add_submission(user_id: int, user_name: str, number_selected: int):
+    for sub in current_round["submissions"]:
+        if sub["user_id"] == user_id:
+            sub["number_selected"] = number_selected
+            sub["user_name"] = user_name  # in case name changed
+            return
+        
     current_round["submissions"].append({
         "user_id": user_id,
         "user_name": user_name,

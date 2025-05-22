@@ -23,7 +23,13 @@
     </div>
 
     <script>
-        const userId = Math.floor(Math.random() * 100000)
+        let userId = localStorage.getItem("userId")
+        if (!userId) {
+            userId = Math.floor(Math.random() * 100000)
+            localStorage.setItem("userId", userId)
+        }
+        userId = parseInt(userId)
+
         
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
