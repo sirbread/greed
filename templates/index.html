@@ -15,13 +15,39 @@
 
     <script>
         const userId = Math.floor(Math.random() * 100000)
-        for (let i = 1; i <= 10; i++) {
-            const btn = document.createElement("button")
-            btn.textContent = i
-            btn.onclick=()=> submitNumber(i)
-            document.getElementById("buttons").appendChild(btn)
-        }
+            function submit() {
+                const value = ParseInt(document.getElementByID("numberInput").value)
+                if (isNaN(value) || value < 1 || value > 10) {
+                    document.getElementById("status").textContent = "Please enter a number from 1 to 10"
+                    return
+                }
+                fetch("/submit/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, number_selected: value })
+                }) 
+                .then(res => res.json())
+                .then(() => {
+                    document.getElementById("status").textContent = "Submitted number " +value
+                    document.getElementById("numberInput").value = ""
+                    loadScores()
+                })
+            }
+
+            function loadScores() {
+                fetch("/scores/")
+                    .then(res => res.json())
+                    .then(scores => {
+                        document.getElementById("scores").textContent =
+                            scores.map(s => "user " + s.user_id + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
+
+                    })
+            }
+
+            setInterval(loadScores, 5000)
+            loadScores()
         
-        
+
     </script>
 </body>
+</html>
