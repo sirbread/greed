@@ -10,10 +10,17 @@ current_round = {
     "round_id": 1,
     "end_time": datetime.now(mst) + timedelta(seconds=ROUND_DURATION),
     "awaiting_submissions": [],
-    "final_submissions": [],  # Per-round breakdown (optional, not persistent)
+    "final_submissions": [],
 }
 
 user_totals = defaultdict(float)  # user_id -> total score
+
+def ensure_round_current():
+    now = datetime.now(mst)
+    while now > current_round["end_time"]:
+        finalize_round()
+        reset_round()
+        now = datetime.now(mst)
 
 def reset_round():
     current_round["round_id"] += 1
