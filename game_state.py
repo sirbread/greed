@@ -7,34 +7,47 @@ mst = pytz.timezone("America/Denver")
 current_round = {
     "round_id": 1,
     "end_time": datetime.now(mst) + timedelta(minutes=2),
-    "submissions": []
+    "awaiting_submissions": [],  # i hold submissions 
+    "final_submissions": [],   
 }
 
 def reset_round():
     current_round["round_id"] += 1
     current_round["end_time"] = datetime.now(mst) + timedelta(hours=5)
-    current_round["submissions"] = []
+    current_round["awaiting_submissions"] = []
+    current_round["final_submissions"] = []
 
-def add_submission(user_id: int, user_name: str, number_selected: int):
-    for sub in current_round["submissions"]:
+def add_awaiting_submission(user_id: int, user_name: str, number_selected: int):
+    for sub in current_round["awaiting_submissions"]:
         if sub["user_id"] == user_id:
             sub["number_selected"] = number_selected
             sub["user_name"] = user_name  # in case name changed
             return
-        
-    current_round["submissions"].append({
+    current_round["awaiting_submissions"].append({
         "user_id": user_id,
         "user_name": user_name,
         "number_selected": number_selected
     })
 
+def get_awaiting_submission(user_id: int):
+    for sub in current_round["awaiting_submissions"]:
+        if sub["user_id"] == user_id:
+            return sub
+    return None
+
+def finalize_round():
+    # move all awaiting submissions to final submissions
+    current_round["final_submissions"] = current_round["awaiting_submissions"].copy()
+    current_round["awaiting_submissions"] = []
+
 def calculate_scores():
+    # only use final shits
     counts = defaultdict(int)
-    for sub in current_round["submissions"]:
+    for sub in current_round["final_submissions"]:
         counts[sub["number_selected"]] += 1
 
     results = []
-    for sub in current_round["submissions"]:
+    for sub in current_round["final_submissions"]:
         number = sub["number_selected"]
         count = counts[number]
         score = number / count

@@ -1,14 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi import Request
 from pydantic import BaseModel
 from game_state import (
-    add_submission,
+    add_awaiting_submission,
     calculate_scores,
     current_round,
-    reset_round
+    reset_round,
+    finalize_round,
+    get_awaiting_submission
 )
 from datetime import datetime
 import pytz
@@ -31,12 +31,19 @@ def home(request: Request):
 def submit(data: Submission):
     now = datetime.now(mst)
     if now > current_round["end_time"]:
+        # finalize last round, then reset for new round
+        finalize_round()
         reset_round()
-    add_submission(data.user_id, data.user_name, data.number_selected)
+    add_awaiting_submission(data.user_id, data.user_name, data.number_selected)
     return {"status": "submitted"}
 
 @app.get("/scores/")
 def scores():
+    # if round has ended, show final scores
+    # why tf is my keyboard sqeaking
+    now = datetime.now(mst)
+    if now > current_round["end_time"]:
+        finalize_round()
     return calculate_scores()
 
 @app.get("/round/")
@@ -47,3 +54,11 @@ def get_round_info():
         "round_id": current_round["round_id"],
         "time_left_minutes": int(remaining.total_seconds() // 60)
     }
+
+@app.get("/awaiting/")
+def awaiting(user_id: int):
+    sub = get_awaiting_submission(user_id)
+    if sub:
+        return {"user_id": sub["user_id"], "number_selected": sub["number_selected"]}
+    else:
+        return {}
