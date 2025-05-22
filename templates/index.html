@@ -55,7 +55,7 @@
         userId = parseInt(userId)
 
         let lastRoundId = null;
-        let firstAwaitingPrefillDone = false;
+        let didInitialPrefill = false;
 
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
@@ -90,7 +90,7 @@
             })
             .then(res => res.json())
             .then(() => {
-                document.getElementById("numberInput").value = ""
+                document.getElementById("numberInput").value = value;
             })
         }
 
@@ -125,7 +125,7 @@
                         document.getElementById("numberInput").value = "";
                         document.getElementById("status").textContent = "";
                         document.getElementById("input-message").textContent = "";
-                        firstAwaitingPrefillDone = false;
+                        didInitialPrefill = false;
                     }
                 });
         }
@@ -137,9 +137,9 @@
                     const statusDiv = document.getElementById("status");
                     if (data && data.number_selected !== undefined) {
                         statusDiv.textContent = "Submitted number: " + data.number_selected;
-                        if (!firstAwaitingPrefillDone) {
+                        if (!didInitialPrefill) {
                             document.getElementById("numberInput").value = data.number_selected;
-                            firstAwaitingPrefillDone = true;
+                            didInitialPrefill = true;
                         }
                     } else {
                         statusDiv.textContent = "";
@@ -156,8 +156,8 @@
         }
 
         function prefillAwaitingSubmission() {
-            firstAwaitingPrefillDone = false;
-            pollAwaitingSubmission(); 
+            didInitialPrefill = false;
+            pollAwaitingSubmission(); //will prefill on first call if needed
         }
 
         setInterval(checkRoundStatus, 1000)
