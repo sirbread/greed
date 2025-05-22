@@ -49,6 +49,8 @@
         }
         userId = parseInt(userId)
 
+        let lastRoundId = null;
+
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
             if (!name) {
@@ -98,8 +100,6 @@
                 })
         }
 
-        let lastRoundId = null;
-
         function updateTimerDisplay(secondsLeft) {
             let timerDiv = document.getElementById("timer");
             let min = Math.floor(secondsLeft / 60);
@@ -115,6 +115,8 @@
                     if (lastRoundId !== data.round_id) {
                         lastRoundId = data.round_id;
                         loadScores();
+                        document.getElementById("status").textContent = "";
+                        document.getElementById("numberInput").value = "";
                     }
                 });
         }
@@ -126,6 +128,8 @@
                     if (data && data.number_selected !== undefined) {
                         document.getElementById("numberInput").value = data.number_selected
                         document.getElementById("status").textContent = "(You have an awaiting submission for this round)"
+                    } else {
+                        document.getElementById("status").textContent = "";
                     }
                 })
         }
