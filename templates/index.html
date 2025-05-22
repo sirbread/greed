@@ -87,7 +87,7 @@
                 .then(res => res.json())
                 .then(scores => {
                     document.getElementById("scores").textContent =
-                        scores.map(s => s.user_name + ": " + s.score.toFixed(2) + " (picked " + s.number + ")").join("\n")
+                        scores.map(s => s.user_name + ": " + s.total_score.toFixed(2)).join("\n")
                 })
         }
 

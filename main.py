@@ -38,10 +38,10 @@ def submit(data: Submission):
 
 @app.get("/scores/")
 def scores():
-    # If round has ended, show final scores
     now = datetime.now(mst)
     if now > current_round["end_time"]:
         finalize_round()
+        reset_round()
     return calculate_scores()
 
 @app.get("/round/")
