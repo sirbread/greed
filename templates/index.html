@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>greed</title>
+</head>
+<body>
+    <h1>pick a number (1-10, inclusive, integer)</h1>
+    <div id="buttons"></div>
+
+    <div id="status"></div>
+    <div id="scoreboard"></div>
+        <h2>scores</h2>
+        <pre id="scores">Loading...</pre>
+    </div>
+
+    <script>
+        const userId = Math.floor(Math.random() * 100000)
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement("button")
+            btn.textContent = i
+            btn.onclick=()=> submitNumber(i)
+            document.getElementById("buttons").appendChild(btn)
+        }
+        
+        
+    </script>
+</body>
