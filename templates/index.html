@@ -15,6 +15,9 @@
             padding: 8px 0;
             z-index: 100;
         }
+        #scoreboard {
+            margin-top: 24px;
+        }
     </style>
 </head>
 <body>
@@ -32,7 +35,7 @@
     </div>
     
     <div id="scoreboard">
-        <h2>scores</h2>
+        <h2>Leaderboard (Final Scores)</h2>
         <pre id="scores">Loading...</pre>
     </div>
 
@@ -86,8 +89,12 @@
             fetch("/scores/")
                 .then(res => res.json())
                 .then(scores => {
+                    if (scores.length === 0) {
+                        document.getElementById("scores").textContent = "No scores yet."
+                        return
+                    }
                     document.getElementById("scores").textContent =
-                        scores.map(s => s.user_name + ": " + s.total_score.toFixed(2)).join("\n")
+                        scores.map((s, i) => `${i+1}. ${s.user_name}: ${s.total_score.toFixed(2)}`).join("\n")
                 })
         }
 
@@ -108,11 +115,6 @@
                     if (lastRoundId !== data.round_id) {
                         lastRoundId = data.round_id;
                         loadScores();
-                    }
-                    if ((data.time_left_seconds || 0) <= 0) {
-                        document.getElementById("scoreboard").style.display = "block";
-                    } else {
-                        document.getElementById("scoreboard").style.display = "none";
                     }
                 });
         }
@@ -137,6 +139,7 @@
         }
 
         setInterval(checkRoundStatus, 1000)
+        loadScores()
         checkRoundStatus()
     </script>
 </body>
