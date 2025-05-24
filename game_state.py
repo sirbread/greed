@@ -4,7 +4,7 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 10  #seconds
+ROUND_DURATION = 20  #seconds
 WINNING_SCORE = 10  #points to win
 
 current_round = {
@@ -75,9 +75,8 @@ def finalize_round():
 
 def calculate_scores():
     leaderboard = []
-    names = {sub["user_id"]: sub["user_name"] for sub in current_round["final_submissions"]}
     for user_id, total in user_totals.items():
-        name = names.get(user_id, str(user_id))
+        name = user_names.get(user_id, str(user_id))
         leaderboard.append({
             "user_id": user_id,
             "user_name": name,

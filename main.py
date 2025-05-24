@@ -13,6 +13,7 @@ from game_state import (
     round_history,
     get_winner_info,
     WINNING_SCORE,
+    ROUND_DURATION,
 )
 from graphs import generate_round_graphs
 from datetime import datetime
@@ -113,3 +114,7 @@ def get_graphs(request: Request):
 @app.get("/winner/")
 def winner():
     return last_winner_info
+
+@app.get("/config/")
+def config():
+    return {"round_duration_seconds": ROUND_DURATION}
