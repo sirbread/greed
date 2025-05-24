@@ -9,8 +9,10 @@ from game_state import (
     reset_round,
     finalize_round,
     get_awaiting_submission,
-    ensure_round_current
+    ensure_round_current,
+    round_history 
 )
+from graphs import generate_round_graphs  
 from datetime import datetime
 import pytz
 import os
@@ -78,12 +80,10 @@ def all_final():
     ensure_round_current()
     return current_round["final_submissions"]
 
-@app.get ("/graphs", response_class=HTMLResponse)
+@app.get("/graphs", response_class=HTMLResponse)
 def get_graphs(request: Request):
-    graph_dir = "static/graphs"
-    images = []
-    if os.path.exists(graph_dir):
-        files= sorted(f for f in os.listdir(graph_dir) if f.startswith("round_") and f.endswith(".png"))
-        images = [(fname, int(fname.split("_")[1].split(".")[0])) for fname in files]
-        images.sort(key=lambda x: x[1])
+    min_num = 0
+    max_num = 11
+    image_filenames = generate_round_graphs(round_history, min_num, max_num)
+    images = [(fname, idx + 1) for idx, fname in enumerate(image_filenames)]
     return templates.TemplateResponse("graphs.html", {"request": request, "images": images})

@@ -4,7 +4,7 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 15 #for testing gng
+ROUND_DURATION = 15
 
 current_round = {
     "round_id": 1,
@@ -14,6 +14,8 @@ current_round = {
 }
 
 user_totals = defaultdict(float)  # user_id -> total score
+
+round_history = []
 
 def ensure_round_current():
     now = datetime.now(mst)
@@ -65,6 +67,7 @@ def finalize_round():
             "total_score": user_totals[sub["user_id"]]
         })
     current_round["final_submissions"] = round_results
+    round_history.append(dict(counts))
     current_round["awaiting_submissions"] = []
 
 def calculate_scores():
