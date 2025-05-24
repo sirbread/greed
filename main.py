@@ -28,6 +28,10 @@ class Submission(BaseModel):
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/help", response_class=HTMLResponse)
+def help_page(request: Request):
+    return templates.TemplateResponse("help.html", {"request": request})
+
 @app.post("/submit/")
 def submit(data: Submission):
     ensure_round_current()
