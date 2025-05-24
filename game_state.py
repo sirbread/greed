@@ -4,7 +4,7 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 60  # 1 minute rounds
+ROUND_DURATION = 15 #for testing gng
 
 current_round = {
     "round_id": 1,
