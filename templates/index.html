@@ -26,14 +26,16 @@
             margin-bottom: 1.5em;
             display: block;
         }
-        .status-in-transit {
-            color: red !important;
+        .winner-message {
+            font-size: 1.3em;
+            color: green;
+            margin: 1.5em 0;
         }
     </style>
 </head>
 <body>
     <h1>pick a number (1-10, inclusive, integer)</h1>
-
+    <h3>first player to reach <span id="winning-score">{{ winning_score }}</span> points wins!</h3>
     <a id="help-link" href="/help">what is this?</a>
     <a id="graphs-link" href="/graphs">see stats</a>
 
@@ -68,6 +70,7 @@
         let didInitialPrefill = false;
         let isSubmitting = false;
         let lastSubmittedValue = null;
+        let winnerAnnounced = false;
 
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
@@ -147,8 +150,28 @@
                         didInitialPrefill = false;
                         isSubmitting = false;
                         lastSubmittedValue = null;
+                        checkForWinner();
                     }
                 });
+        }
+
+        function checkForWinner() {
+            fetch("/winner/")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.winner && !winnerAnnounced) {
+                        winnerAnnounced = true;
+                        showWinner(data.user_name, data.user_id, data.score);
+                    }
+                });
+        }
+
+        function showWinner(name, id, score) {
+            const gameDiv = document.getElementById("game");
+            gameDiv.innerHTML = `<div class="winner-message">
+            congratulations <b>${name}</b> (ID: ${id})!<br>
+            you won with a score of ${score}.
+            </div>`;
         }
 
         function pollAwaitingSubmission() {

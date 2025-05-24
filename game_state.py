@@ -4,7 +4,8 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 15
+ROUND_DURATION = 10  #seconds
+WINNING_SCORE = 10  #points to win
 
 current_round = {
     "round_id": 1,
@@ -13,8 +14,7 @@ current_round = {
     "final_submissions": [],
 }
 
-user_totals = defaultdict(float)  # user_id -> total score
-
+user_totals = defaultdict(float) 
 round_history = []
 
 def ensure_round_current():
@@ -82,3 +82,21 @@ def calculate_scores():
         })
     leaderboard.sort(key=lambda x: -x["total_score"])
     return leaderboard
+
+def get_winner_info():
+    for user_id, total in user_totals.items():
+        if total >= WINNING_SCORE:
+            name = None
+            for sub in current_round["final_submissions"]:
+                if sub["user_id"] == user_id:
+                    name = sub["user_name"]
+                    break
+            if not name:
+                name = str(user_id)
+            return {
+                "winner": True,
+                "user_id": user_id,
+                "user_name": name,
+                "score": total
+            }
+    return {"winner": False}
