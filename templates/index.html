@@ -26,6 +26,9 @@
             margin-bottom: 1.5em;
             display: block;
         }
+        .status-in-transit {
+            color: red !important;
+        }
     </style>
 </head>
 <body>
@@ -62,6 +65,8 @@
 
         let lastRoundId = null;
         let didInitialPrefill = false;
+        let isSubmitting = false;
+        let lastSubmittedValue = null;
 
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
@@ -79,11 +84,17 @@
             const name = localStorage.getItem("username")
             const value = parseInt(document.getElementById("numberInput").value)
             const inputMsgDiv = document.getElementById("input-message");
+            const statusDiv = document.getElementById("status");
             if (isNaN(value) || value < 1 || value > 10) {
                 inputMsgDiv.textContent = "Please enter a number from 1 to 10"
                 return
             }
             inputMsgDiv.textContent = "";
+
+            isSubmitting = true;
+            lastSubmittedValue = value; 
+            statusDiv.textContent = "Submitting...";
+            statusDiv.classList.add("status-in-transit");
 
             fetch("/submit/", {
                 method: "POST",
@@ -130,8 +141,11 @@
                         loadScores();
                         document.getElementById("numberInput").value = "";
                         document.getElementById("status").textContent = "";
+                        document.getElementById("status").classList.remove("status-in-transit");
                         document.getElementById("input-message").textContent = "";
                         didInitialPrefill = false;
+                        isSubmitting = false;
+                        lastSubmittedValue = null;
                     }
                 });
         }
@@ -142,13 +156,26 @@
                 .then(data => {
                     const statusDiv = document.getElementById("status");
                     if (data && data.number_selected !== undefined) {
-                        statusDiv.textContent = "Submitted number: " + data.number_selected;
+                        if (isSubmitting) { 
+                            if (data.number_selected === lastSubmittedValue) {
+                                isSubmitting = false;
+                                statusDiv.textContent = "Submitted number: " + data.number_selected;
+                                statusDiv.classList.remove("status-in-transit");
+                            } else {
+                                statusDiv.textContent = "Submitting...";
+                                statusDiv.classList.add("status-in-transit");
+                            }
+                        } else {
+                            statusDiv.textContent = "Submitted number: " + data.number_selected;
+                            statusDiv.classList.remove("status-in-transit");
+                        }
                         if (!didInitialPrefill) {
                             document.getElementById("numberInput").value = data.number_selected;
                             didInitialPrefill = true;
                         }
                     } else {
                         statusDiv.textContent = "";
+                        statusDiv.classList.remove("status-in-transit");
                     }
                 })
         }
