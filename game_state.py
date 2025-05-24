@@ -14,6 +14,8 @@ current_round = {
     "final_submissions": [],
 }
 
+user_names = {} 
+
 user_totals = defaultdict(float) 
 round_history = []
 
@@ -31,6 +33,7 @@ def reset_round():
     current_round["final_submissions"] = []
 
 def add_awaiting_submission(user_id: int, user_name: str, number_selected: int):
+    user_names[user_id] = user_name
     for sub in current_round["awaiting_submissions"]:
         if sub["user_id"] == user_id:
             sub["number_selected"] = number_selected
@@ -86,13 +89,7 @@ def calculate_scores():
 def get_winner_info():
     for user_id, total in user_totals.items():
         if total >= WINNING_SCORE:
-            name = None
-            for sub in current_round["final_submissions"]:
-                if sub["user_id"] == user_id:
-                    name = sub["user_name"]
-                    break
-            if not name:
-                name = str(user_id)
+            name = user_names.get(user_id, str(user_id))
             return {
                 "winner": True,
                 "user_id": user_id,

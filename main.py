@@ -95,8 +95,19 @@ def all_final():
 def get_graphs(request: Request):
     min_num = 0
     max_num = 11
-    image_filenames = generate_round_graphs(round_history, min_num, max_num)
-    images = [(fname, idx + 1) for idx, fname in enumerate(image_filenames)]
+    if not last_winner_info.get("winner", False):
+        image_filenames = generate_round_graphs(round_history, min_num, max_num)
+        images = [(fname, idx + 1) for idx, fname in enumerate(image_filenames)]
+    else:
+        graph_dir = "static/graphs"
+        images = []
+        if os.path.exists(graph_dir):
+            files = sorted(
+                f for f in os.listdir(graph_dir)
+                if f.startswith("round_") and f.endswith(".png")
+            )
+            images = [(fname, int(fname.split("_")[1].split(".")[0])) for fname in files]
+            images.sort(key=lambda x: x[1])
     return templates.TemplateResponse("graphs.html", {"request": request, "images": images})
 
 @app.get("/winner/")

@@ -71,6 +71,7 @@
         let isSubmitting = false;
         let lastSubmittedValue = null;
         let winnerAnnounced = false;
+        let gameEnded = false; 
 
         function saveName() {
             const name = document.getElementById("nameInput").value.trim()
@@ -130,12 +131,19 @@
 
         function updateTimerDisplay(secondsLeft) {
             let timerDiv = document.getElementById("timer");
+            if (gameEnded) {
+                timerDiv.textContent = "Timer: ENDED";
+                return;
+            }
             let min = Math.floor(secondsLeft / 60);
             let sec = secondsLeft % 60;
             timerDiv.textContent = `Time left this round: ${min}:${sec.toString().padStart(2, '0')}`;
         }
 
         function checkRoundStatus() {
+            if (gameEnded) {
+                return;
+            }
             fetch("/round/")
                 .then(res => res.json())
                 .then(data => {
@@ -161,7 +169,9 @@
                 .then(data => {
                     if (data.winner && !winnerAnnounced) {
                         winnerAnnounced = true;
+                        gameEnded = true;
                         showWinner(data.user_name, data.user_id, data.score);
+                        updateTimerDisplay(0); 
                     }
                 });
         }
@@ -175,6 +185,7 @@
         }
 
         function pollAwaitingSubmission() {
+            if (gameEnded) return;
             fetch("/awaiting/?user_id=" + userId)
                 .then(res => res.json())
                 .then(data => {
