@@ -13,9 +13,12 @@ from game_state import (
 )
 from datetime import datetime
 import pytz
+import os
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 mst = pytz.timezone("America/Denver")
 
@@ -74,3 +77,13 @@ def all_awaiting():
 def all_final():
     ensure_round_current()
     return current_round["final_submissions"]
+
+@app.get ("/graphs", response_class=HTMLResponse)
+def get_graphs(request: Request):
+    graph_dir = "static/graphs"
+    images = []
+    if os.path.exists(graph_dir):
+        files= sorted(f for f in os.listdir(graph_dir) if f.startswith("round_") and f.endswith(".png"))
+        images = [(fname, int(fname.split("_")[1].split(".")[0])) for fname in files]
+        images.sort(key=lambda x: x[1])
+    return templates.TemplateResponse("graphs.html", {"request": request, "images": images})

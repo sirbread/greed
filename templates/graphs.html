@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>greed graphs</title>
+    <style>
+        body { max-width: 900px; margin: 2em auto}
+        .graph-img { margin-bottom: 3em; border: 1px solid #aaa; background: #ffffff; }
+        h2 { margin-bottom: 0.3em; }
+        a { color: #287; }
+
+    </style>
+</head>
+<body>
+    <a href = "/">←←←←← back to game</a>
+    <h1>stats for nerds</h1>
+    {% for image, idx in images %}
+        <h2>round {{ idx }}</h2>
+        <img class="graph-img" src="/static/graphs/{{ image }}" alt="Round {{ idx }} graph">
+    {% endfor %}
+</body>
+</html>
