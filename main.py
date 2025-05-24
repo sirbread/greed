@@ -93,8 +93,8 @@ def all_final():
 
 @app.get("/graphs", response_class=HTMLResponse)
 def get_graphs(request: Request):
-    min_num = 0
-    max_num = 11
+    min_num = 1
+    max_num = 10 #  .   .    .     .    .    .    .    .   .   .     .   . ****ADJUST THIS WHEN CHANGING POINT VALUES****
     if not last_winner_info.get("winner", False):
         image_filenames = generate_round_graphs(round_history, min_num, max_num)
         images = [(fname, idx + 1) for idx, fname in enumerate(image_filenames)]

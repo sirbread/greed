@@ -6,7 +6,7 @@ todo:
 - ~~help page~~
 - ~~graphs with matplotlib~~
 - firebase login (watch and indian tutorial guy idk how it works)
-- game ending @ x points
+- ~~game ending @ x points~~
 - MAKE THE WEBSITE COOL LOOKIN!!!! need to up my react game gng
 todo, but html pages
 - index (home, maybe like a go/login button here)
