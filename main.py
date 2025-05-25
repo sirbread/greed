@@ -17,6 +17,7 @@ from game_state import (
     get_winner_info,
     WINNING_SCORE,
     ROUND_DURATION,
+    user_names
 )
 from graphs import generate_round_graphs
 from datetime import datetime
@@ -25,6 +26,8 @@ from fastapi.staticfiles import StaticFiles
 
 import firebase_admin
 from firebase_admin import auth as firebase_auth, credentials
+
+import re 
 
 load_dotenv()
 
@@ -78,7 +81,7 @@ def help_page(request: Request):
 def submit(data: Submission, user=Depends(verify_firebase_token)):
     ensure_round_current()
     user_id = user["uid"]
-    user_name = user.get("name") or user.get("email") or "Anonymous"
+    user_name = user_names.get(user_id, user.get("name") or user.get("email") or "Anonymous")
     add_awaiting_submission(user_id, user_name, data.number_selected)
     return {"status": "submitted"}
 
@@ -140,3 +143,20 @@ def winner():
 @app.get("/config/")
 def get_config():
     return {"round_duration_seconds": ROUND_DURATION}
+
+@app.post("/set_username/")
+def set_username(data: dict, user=Depends(verify_firebase_token)):
+    username = data["username"]
+    if not re.match(r"^[a-zA-Z0-9_-]+$", username):
+        return {"success": False, "error": "invalid"}
+    if username in user_names.values():
+        return {"success": False, "error": "taken"}
+    user_names[user["uid"]] = username
+    return {"success": True}
+
+@app.get("/whoami/")
+def whoami(user=Depends(verify_firebase_token)):
+    user_id = user["uid"]
+    from game_state import user_names 
+    username = user_names.get(user_id)
+    return {"username": username} if username else {}

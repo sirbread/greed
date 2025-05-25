@@ -34,6 +34,14 @@
         #auth-section {
             margin-bottom: 1em;
         }
+        #username-section {
+            margin: 1.5em 0;
+            display: none;
+        }
+        #username-error {
+            color: red;
+            margin-top: 0.5em;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -63,9 +71,16 @@
         <span id="user-info"></span>
     </div>
 
+    <div id="username-section">
+        <label for="username-input">enter your username:</label>
+        <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
+        <button id="username-go">go!</button>
+        <div id="username-error"></div>
+    </div>
+
     <div id="game" style="display:none;">
         <input type="number" id="numberInput" min="1" max="10">
-        <button onclick="submit()">Submit</button>
+        <button onclick="submit()">submit</button>
         <div id="input-message"></div>
         <div id="status"></div>
     </div>
@@ -85,6 +100,7 @@
         let gameEnded = false;
         let currentUser = null;
         let currentToken = null;
+        let usernameSet = false;
 
         document.getElementById('google-login').onclick = function() {
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -94,15 +110,41 @@
             auth.signOut();
         };
 
+        function showUsernameSection() {
+            document.getElementById("username-section").style.display = "block";
+            document.getElementById("game").style.display = "none";
+        }
+        function hideUsernameSection() {
+            document.getElementById("username-section").style.display = "none";
+            document.getElementById("game").style.display = "block";
+        }
+
+        function checkIfUsernameSet(token) {
+            return fetch("/whoami/", {
+                method: "GET",
+                headers: {"Authorization": "Bearer " + token}
+            })
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => !!data.username)
+            .catch(() => false);
+        }
+
         auth.onAuthStateChanged(user => {
             currentUser = user;
             if (user) {
                 document.getElementById('google-login').style.display = 'none';
                 document.getElementById('logout').style.display = 'inline-block';
-                document.getElementById('user-info').textContent = "Signed in as: " + (user.displayName || user.email);
-                document.getElementById("game").style.display = "block";
+                document.getElementById('user-info').textContent = "hello, " + (user.displayName || user.email) + "!";
                 user.getIdToken().then(token => {
                     currentToken = token;
+                    checkIfUsernameSet(token).then(isSet => {
+                        usernameSet = isSet;
+                        if (!usernameSet) {
+                            showUsernameSection();
+                        } else {
+                            hideUsernameSection();
+                        }
+                    });
                 });
                 prefillAwaitingSubmission();
             } else {
@@ -110,8 +152,47 @@
                 document.getElementById('logout').style.display = 'none';
                 document.getElementById('user-info').textContent = "";
                 document.getElementById("game").style.display = "none";
+                document.getElementById("username-section").style.display = "none";
             }
         });
+
+        document.getElementById("username-go").onclick = function() {
+            const username = document.getElementById("username-input").value.trim();
+            const errorDiv = document.getElementById("username-error");
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                errorDiv.textContent = "invalid username (letters, numbers, dashes, underscores only)";
+                return;
+            }
+            if (username.length < 2 || username.length > 20) {
+                errorDiv.textContent = "username must be 2-20 characters";
+                return;
+            }
+            errorDiv.textContent = "";
+            fetch("/set_username/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentToken
+                },
+                body: JSON.stringify({username})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    hideUsernameSection();
+                    usernameSet = true;
+                } else if (data.error === "taken") {
+                    errorDiv.textContent = "this username is taken gng";
+                } else if (data.error === "invalid") {
+                    errorDiv.textContent = "invalid username gng (letters/numbers/underscores only)";
+                } else {
+                    errorDiv.textContent = "some thing happened, your thing didn't happen though 🥀";
+                }
+            })
+            .catch(() => {
+                errorDiv.textContent = "the server is cooked gng 🥀";
+            });
+        };
 
         function submit() {
             const value = parseInt(document.getElementById("numberInput").value);
@@ -119,6 +200,10 @@
             const statusDiv = document.getElementById("status");
             if (!currentUser) {
                 inputMsgDiv.textContent = "please sign in first.";
+                return;
+            }
+            if (!usernameSet) {
+                inputMsgDiv.textContent = "please set your username first";
                 return;
             }
             if (isNaN(value) || value < 1 || value > 10) {
@@ -269,7 +354,7 @@
                 .then(cfg => {
                     let desc = formatDuration(cfg.round_duration_seconds);
                     document.getElementById("round-duration-desc").textContent =
-                        "Each round lasts: " + desc + ".";
+                        "each round lasts: " + desc + ".";
                 });
         }
         setRoundDurationDesc();
