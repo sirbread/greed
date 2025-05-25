@@ -26,9 +26,6 @@ from fastapi.staticfiles import StaticFiles
 import firebase_admin
 from firebase_admin import auth as firebase_auth, credentials
 
-import db 
-import re
-
 load_dotenv()
 
 FIREBASE_ADMINSDK_JSON = os.getenv("FIREBASE_ADMINSDK_JSON")
@@ -48,8 +45,6 @@ last_checked_round_id = 1
 class Submission(BaseModel):
     number_selected: int
 
-class UsernameRequest(BaseModel):
-    username: str
 
 def verify_firebase_token(authorization: str = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
@@ -61,13 +56,6 @@ def verify_firebase_token(authorization: str = Header(None)):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Firebase ID token")
 
-def get_db():
-    db_session = db.SessionLocal()
-    try:
-        yield db_session
-
-    finally:
-            db_session.close()
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -152,7 +140,3 @@ def winner():
 @app.get("/config/")
 def get_config():
     return {"round_duration_seconds": ROUND_DURATION}
-
-@app.post("/set-username/")
-def set_username(req: UsernameRequest, user = Depends(verify_firebase_token), db_session=Depends(get_db)):
-    username = req.username.strip()
