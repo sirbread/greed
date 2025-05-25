@@ -31,7 +31,24 @@
             color: green;
             margin: 1.5em 0;
         }
+        #auth-section {
+            margin-bottom: 1em;
+        }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "{{ firebase_api_key }}",
+        authDomain: "{{ firebase_auth_domain }}",
+        projectId: "{{ firebase_project_id }}",
+        storageBucket: "{{ firebase_storage_bucket }}",
+        messagingSenderId: "{{ firebase_messaging_sender_id }}",
+        appId: "{{ firebase_app_id }}"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+    </script>
 </head>
 <body>
     <h1>pick a number (1-10, inclusive, integer)</h1>
@@ -40,9 +57,10 @@
     <a id="help-link" href="/help">what is this?</a>
     <a id="graphs-link" href="/graphs">see stats</a>
 
-    <div id="setup">
-        <label>Name: <input type="text" id="nameInput"></label>
-        <button onclick="saveName()">Save</button>
+    <div id="auth-section">
+        <button id="google-login">sign in with google</button>
+        <button id="logout" style="display:none;">logout</button>
+        <span id="user-info"></span>
     </div>
 
     <div id="game" style="display:none;">
@@ -51,70 +69,86 @@
         <div id="input-message"></div>
         <div id="status"></div>
     </div>
-    
-    <div id="scoreboard">
-        <h2>Leaderboard (Final Scores)</h2>
-        <pre id="scores">Loading...</pre>
-    </div>
 
-    <div id="timer">Loading time...</div>
+    <div id="scoreboard">
+        <h2>leaderboard</h2>
+        <pre id="scores">loading...</pre>
+    </div>
+    <div id="timer">loading time...</div>
 
     <script>
-        let userId = localStorage.getItem("userId")
-        if (!userId) {
-            userId = Math.floor(Math.random() * 100000)
-            localStorage.setItem("userId", userId)
-        }
-        userId = parseInt(userId)
-
         let lastRoundId = null;
         let didInitialPrefill = false;
         let isSubmitting = false;
         let lastSubmittedValue = null;
         let winnerAnnounced = false;
-        let gameEnded = false; 
+        let gameEnded = false;
+        let currentUser = null;
+        let currentToken = null;
 
-        function saveName() {
-            const name = document.getElementById("nameInput").value.trim()
-            if (!name) {
-                alert("Please enter a name")
-                return
+        document.getElementById('google-login').onclick = function() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        };
+
+        document.getElementById('logout').onclick = function() {
+            auth.signOut();
+        };
+
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('google-login').style.display = 'none';
+                document.getElementById('logout').style.display = 'inline-block';
+                document.getElementById('user-info').textContent = "Signed in as: " + (user.displayName || user.email);
+                document.getElementById("game").style.display = "block";
+                user.getIdToken().then(token => {
+                    currentToken = token;
+                });
+                prefillAwaitingSubmission();
+            } else {
+                document.getElementById('google-login').style.display = 'inline-block';
+                document.getElementById('logout').style.display = 'none';
+                document.getElementById('user-info').textContent = "";
+                document.getElementById("game").style.display = "none";
             }
-            localStorage.setItem("username", name)
-            document.getElementById("setup").style.display = "none"
-            document.getElementById("game").style.display = "block"
-            prefillAwaitingSubmission()
-        }
+        });
 
         function submit() {
-            const name = localStorage.getItem("username")
-            const value = parseInt(document.getElementById("numberInput").value)
+            const value = parseInt(document.getElementById("numberInput").value);
             const inputMsgDiv = document.getElementById("input-message");
             const statusDiv = document.getElementById("status");
+            if (!currentUser) {
+                inputMsgDiv.textContent = "please sign in first.";
+                return;
+            }
             if (isNaN(value) || value < 1 || value > 10) {
-                inputMsgDiv.textContent = "Please enter a number from 1 to 10"
-                return
+                inputMsgDiv.textContent = "please enter a number from 1 to 10";
+                return;
             }
             inputMsgDiv.textContent = "";
 
             isSubmitting = true;
             lastSubmittedValue = value;
-            statusDiv.textContent = "Submitting...";
+            statusDiv.textContent = "submitting...";
             statusDiv.classList.add("status-in-transit");
 
-            fetch("/submit/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user_id: userId, 
-                    user_name: name,
-                    number_selected: value 
+            currentUser.getIdToken(true).then(token => {
+                currentToken = token;
+                fetch("/submit/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        number_selected: value
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(() => {
-                document.getElementById("numberInput").value = value;
-            })
+                .then(res => res.json())
+                .then(() => {
+                    document.getElementById("numberInput").value = value;
+                })
+            });
         }
 
         function loadScores() {
@@ -122,7 +156,7 @@
                 .then(res => res.json())
                 .then(scores => {
                     if (scores.length === 0) {
-                        document.getElementById("scores").textContent = "No scores yet."
+                        document.getElementById("scores").textContent = "no scores yet."
                         return
                     }
                     document.getElementById("scores").textContent =
@@ -133,18 +167,16 @@
         function updateTimerDisplay(secondsLeft) {
             let timerDiv = document.getElementById("timer");
             if (gameEnded) {
-                timerDiv.textContent = "Timer: ENDED";
+                timerDiv.textContent = "timer: ENDED";
                 return;
             }
             let min = Math.floor(secondsLeft / 60);
             let sec = secondsLeft % 60;
-            timerDiv.textContent = `Time left this round: ${min}:${sec.toString().padStart(2, '0')}`;
+            timerDiv.textContent = `time left this round: ${min}:${sec.toString().padStart(2, '0')}`;
         }
 
         function checkRoundStatus() {
-            if (gameEnded) {
-                return;
-            }
+            if (gameEnded) return;
             fetch("/round/")
                 .then(res => res.json())
                 .then(data => {
@@ -186,8 +218,8 @@
         }
 
         function pollAwaitingSubmission() {
-            if (gameEnded) return;
-            fetch("/awaiting/?user_id=" + userId)
+            if (gameEnded || !currentUser) return;
+            fetch("/awaiting/?user_id=" + currentUser.uid)
                 .then(res => res.json())
                 .then(data => {
                     const statusDiv = document.getElementById("status");
@@ -195,14 +227,14 @@
                         if (isSubmitting) { 
                             if (data.number_selected === lastSubmittedValue) {
                                 isSubmitting = false;
-                                statusDiv.textContent = "Submitted number: " + data.number_selected;
+                                statusDiv.textContent = "submitted number: " + data.number_selected;
                                 statusDiv.classList.remove("status-in-transit");
                             } else {
-                                statusDiv.textContent = "Submitting...";
+                                statusDiv.textContent = "submitting...";
                                 statusDiv.classList.add("status-in-transit");
                             }
                         } else {
-                            statusDiv.textContent = "Submitted number: " + data.number_selected;
+                            statusDiv.textContent = "submitted number: " + data.number_selected;
                             statusDiv.classList.remove("status-in-transit");
                         }
                         if (!didInitialPrefill) {
@@ -214,14 +246,6 @@
                         statusDiv.classList.remove("status-in-transit");
                     }
                 })
-        }
-
-        const saved = localStorage.getItem("username")
-        if (saved) {
-            document.getElementById("nameInput").value = saved
-            document.getElementById("setup").style.display = "none" 
-            document.getElementById("game").style.display = "block"
-            prefillAwaitingSubmission()
         }
 
         function prefillAwaitingSubmission() {

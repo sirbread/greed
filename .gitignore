@@ -19,3 +19,5 @@ static/graphs/round_17.png
 static/graphs/round_18.png
 static/graphs/round_19.png
 static/graphs/round_20.png
+serviceAccountKey.json
+.env

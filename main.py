@@ -1,7 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Header, HTTPException, status, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from dotenv import load_dotenv
+import os
+
 from game_state import (
     add_awaiting_submission,
     calculate_scores,
@@ -18,8 +21,17 @@ from game_state import (
 from graphs import generate_round_graphs
 from datetime import datetime
 import pytz
-import os
 from fastapi.staticfiles import StaticFiles
+
+import firebase_admin
+from firebase_admin import auth as firebase_auth, credentials
+
+load_dotenv()
+
+FIREBASE_ADMINSDK_JSON = os.getenv("FIREBASE_ADMINSDK_JSON")
+
+cred = credentials.Certificate(FIREBASE_ADMINSDK_JSON)
+firebase_admin.initialize_app(cred)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -31,22 +43,41 @@ last_winner_info = {"winner": False}
 last_checked_round_id = 1
 
 class Submission(BaseModel):
-    user_id: int
-    user_name: str
     number_selected: int
+
+def verify_firebase_token(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid Authorization header")
+    token = authorization.split(" ", 1)[1]
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Firebase ID token")
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "winning_score": WINNING_SCORE})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "winning_score": WINNING_SCORE,
+        "firebase_api_key": os.getenv("FIREBASE_API_KEY"),
+        "firebase_auth_domain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+        "firebase_project_id": os.getenv("FIREBASE_PROJECT_ID"),
+        "firebase_storage_bucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+        "firebase_messaging_sender_id": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+        "firebase_app_id": os.getenv("FIREBASE_APP_ID"),
+    })
 
 @app.get("/help", response_class=HTMLResponse)
 def help_page(request: Request):
     return templates.TemplateResponse("help.html", {"request": request})
 
 @app.post("/submit/")
-def submit(data: Submission):
+def submit(data: Submission, user=Depends(verify_firebase_token)):
     ensure_round_current()
-    add_awaiting_submission(data.user_id, data.user_name, data.number_selected)
+    user_id = user["uid"]
+    user_name = user.get("name") or user.get("email") or "Anonymous"
+    add_awaiting_submission(user_id, user_name, data.number_selected)
     return {"status": "submitted"}
 
 @app.get("/scores/")
@@ -74,7 +105,7 @@ def get_round_info():
     }
 
 @app.get("/awaiting/")
-def awaiting(user_id: int):
+def awaiting(user_id: str):
     ensure_round_current()
     sub = get_awaiting_submission(user_id)
     if sub:
@@ -116,5 +147,5 @@ def winner():
     return last_winner_info
 
 @app.get("/config/")
-def config():
+def get_config():
     return {"round_duration_seconds": ROUND_DURATION}

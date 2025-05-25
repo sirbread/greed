@@ -16,3 +16,5 @@ todo, but html pages
 - login.html (login)
 - ~~graphs.html (for my stats nerds)~~
 - chat.html (bluff)
+
+https://www.youtube.com/watch?v=WM178YopjfI
