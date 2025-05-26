@@ -143,10 +143,16 @@
                     })
                     .then(res => res.ok ? res.json() : Promise.reject())
                     .then(data => {
-                        const username = data.username || "(no username)";
+                        const username = data.username;
                         const googleName = user.displayName || user.email;
-                        document.getElementById('user-info').textContent =
-                            `hello ${username}! you're logged in as ${googleName}.`;
+                        const userInfoDiv = document.getElementById('user-info');
+                        if (username && googleName) {
+                            userInfoDiv.textContent = `hello ${username}! you're logged in as ${googleName}.`;
+                        } else if (googleName) {
+                            userInfoDiv.textContent = `welcome to greed! you're logged in as ${googleName}`;
+                        } else {
+                            userInfoDiv.textContent = "";
+                        }
 
                         usernameSet = !!data.username;
                         if (!usernameSet) {
@@ -199,6 +205,9 @@
                 if (data.success) {
                     hideUsernameSection();
                     usernameSet = true;
+                    const googleName = currentUser.displayName || currentUser.email;
+                    document.getElementById('user-info').textContent =
+                        `hello ${document.getElementById("username-input").value.trim()}! you're logged in as ${googleName}.`;
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
