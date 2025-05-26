@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login - greed</title>
+    <style>
+        #username-error { color: red; margin-top: 0.5em; }
+        #auth-section, #username-section { margin: 1.5em 0; }
+        button { font-family: inherit; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "{{ firebase_api_key }}",
+        authDomain: "{{ firebase_auth_domain }}",
+        projectId: "{{ firebase_project_id }}",
+        storageBucket: "{{ firebase_storage_bucket }}",
+        messagingSenderId: "{{ firebase_messaging_sender_id }}",
+        appId: "{{ firebase_app_id }}"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+    </script>
+</head>
+<body>
+    <h1>login to play greed</h1>
+    <div id="auth-section">
+        <button id="google-login">sign in wid google</button>
+        <button id="logout" style="display:none;">logout</button>
+        <span id="user-info"></span>
+    </div>
+
+    <div id="username-section" style="display:none;">
+        <label for="username-input">choose a username:</label>
+        <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
+        <button id="username-go">go!</button>
+        <div id="username-error"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentToken = null;
+        let usernameSet = false;
+
+        function showUsernameSection() {
+            document.getElementById("username-section").style.display = "block";
+        }
+        function hideUsernameSection() {
+            document.getElementById("username-section").style.display = "none";
+        }
+
+        function checkIfUsernameSet(token) {
+            return fetch("/whoami/", {
+                method: "GET",
+                headers: {"Authorization": "Bearer " + token}
+            })
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => !!data.username)
+            .catch(() => false);
+        }
+
+        document.getElementById('google-login').onclick = function() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        };
+        document.getElementById('logout').onclick = function() {
+            auth.signOut();
+        };
+
+        function redirectToGame() {
+            window.location.href = "/";
+        }
+
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('google-login').style.display = 'none';
+                document.getElementById('logout').style.display = 'inline-block';
+                document.getElementById('user-info').textContent = "hello, " + (user.displayName || user.email) + "!";
+                user.getIdToken().then(token => {
+                    currentToken = token;
+                    checkIfUsernameSet(token).then(isSet => {
+                        usernameSet = isSet;
+                        if (usernameSet) {
+                            redirectToGame();
+                        } else {
+                            showUsernameSection();
+                        }
+                    });
+                });
+            } else {
+                document.getElementById('google-login').style.display = 'inline-block';
+                document.getElementById('logout').style.display = 'none';
+                document.getElementById('user-info').textContent = "";
+                hideUsernameSection();
+            }
+        });
+
+        document.getElementById("username-go").onclick = function() {
+            const username = document.getElementById("username-input").value.trim();
+            const errorDiv = document.getElementById("username-error");
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                errorDiv.textContent = "invalid username (letters, numbers, dashes, underscores only)";
+                return;
+            }
+            if (username.length < 2 || username.length > 20) {
+                errorDiv.textContent = "username must be 2-20 characters";
+                return;
+            }
+            errorDiv.textContent = "";
+            fetch("/set_username/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentToken
+                },
+                body: JSON.stringify({username})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    hideUsernameSection();
+                    redirectToGame();
+                } else if (data.error === "taken") {
+                    errorDiv.textContent = "this username is taken gng";
+                } else if (data.error === "invalid") {
+                    errorDiv.textContent = "invalid username gng (letters/numbers/underscores only)";
+                } else {
+                    errorDiv.textContent = "something happened, your thing didn't happen though ";
+                }
+            })
+            .catch(() => {
+                errorDiv.textContent = "the server is cooked gng ";
+            });
+        };
+    </script>
+</body>
+</html>

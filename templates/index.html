@@ -134,25 +134,43 @@
             if (user) {
                 document.getElementById('google-login').style.display = 'none';
                 document.getElementById('logout').style.display = 'inline-block';
-                document.getElementById('user-info').textContent = "hello, " + (user.displayName || user.email) + "!";
+
                 user.getIdToken().then(token => {
                     currentToken = token;
-                    checkIfUsernameSet(token).then(isSet => {
-                        usernameSet = isSet;
+                    fetch("/whoami/", {
+                        method: "GET",
+                        headers: {"Authorization": "Bearer " + token}
+                    })
+                    .then(res => res.ok ? res.json() : Promise.reject())
+                    .then(data => {
+                        const username = data.username || "(no username)";
+                        const googleName = user.displayName || user.email;
+                        document.getElementById('user-info').textContent =
+                            `hello ${username}! you're logged in as ${googleName}.`;
+
+                        usernameSet = !!data.username;
                         if (!usernameSet) {
                             showUsernameSection();
                         } else {
                             hideUsernameSection();
                         }
+                    })
+                    .catch(() => {
+                        document.getElementById('user-info').textContent = "";
+                        usernameSet = false;
+                        showUsernameSection();
                     });
                 });
-                prefillAwaitingSubmission();
+                prefillAwaitingSubmission && prefillAwaitingSubmission();
             } else {
                 document.getElementById('google-login').style.display = 'inline-block';
                 document.getElementById('logout').style.display = 'none';
                 document.getElementById('user-info').textContent = "";
                 document.getElementById("game").style.display = "none";
                 document.getElementById("username-section").style.display = "none";
+                if (window.location.pathname === '/') {
+                    window.location.href = '/login';
+                }
             }
         });
 

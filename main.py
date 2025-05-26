@@ -160,3 +160,15 @@ def whoami(user=Depends(verify_firebase_token)):
     from game_state import user_names 
     username = user_names.get(user_id)
     return {"username": username} if username else {}
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "firebase_api_key": os.getenv("FIREBASE_API_KEY"),
+        "firebase_auth_domain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+        "firebase_project_id": os.getenv("FIREBASE_PROJECT_ID"),
+        "firebase_storage_bucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+        "firebase_messaging_sender_id": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+        "firebase_app_id": os.getenv("FIREBASE_APP_ID"),
+    })
