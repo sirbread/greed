@@ -4,6 +4,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+import threading
+import time
 
 from game_state import (
     add_awaiting_submission,
@@ -59,6 +61,19 @@ def verify_firebase_token(authorization: str = Header(None)):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Firebase ID token")
 
+def background_game_loop():
+    while True:
+        try:
+            ensure_round_current()
+        except Exception as e:
+            print(f"your infinite money spender function broke: {e}")
+        time.sleep(1)
+
+def god_i_hate_money():
+    thread = threading.Thread(target=background_game_loop, daemon=True)
+    thread.start()
+
+god_i_hate_money()
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
