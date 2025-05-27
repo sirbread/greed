@@ -16,5 +16,14 @@
         <h2>round {{ idx }}</h2>
         <img class="graph-img" src="/static/graphs/{{ image }}" alt="Round {{ idx }} graph">
     {% endfor %}
+
+    <div style="margin-top:2em;">
+        {% if page > 1 %}
+            <a href="/graphs?page={{ page - 1 }}">← previous</a>
+        {% endif %}
+        {% if page < total_pages %}
+            <a style="float:right;" href="/graphs?page={{ page + 1 }}">next →</a>
+        {% endif %}
+    </div>
 </body>
 </html>

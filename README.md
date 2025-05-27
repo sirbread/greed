@@ -9,7 +9,7 @@ todo:
 - ~~game ending @ x points~~
 - style it 
 - ~~clog up viewing ability to view POST areas~~
-- reverse graph viewing (like 3-2-1 instead of 1-2-3)
+- ~~reverse graph viewing (like 3-2-1 instead of 1-2-3)~~
 - "greed game 1 starting in... 1 day, 12 hours 58 minutes, 10 seconds"
 
 todo, but html pages

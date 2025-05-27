@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Header, HTTPException, status, Depends
+from fastapi import FastAPI, Request, Header, HTTPException, status, Depends, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -124,12 +124,28 @@ def all_final():
     return current_round["final_submissions"]
 
 @app.get("/graphs", response_class=HTMLResponse)
-def get_graphs(request: Request):
+def get_graphs(request: Request, page: int = Query(1, gt=0)):
     min_num = 1
     max_num = 10
     image_filenames = generate_round_graphs(round_history, min_num, max_num)
-    images = [(fname, idx + 1) for idx, fname in enumerate(image_filenames)]
-    return templates.TemplateResponse("graphs.html", {"request": request, "images": images})
+    image_filenames = list(reversed(image_filenames))
+
+    page_size = 5
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated_images = image_filenames[start:end]
+    images = [(fname, len(image_filenames) - idx) for idx, fname in enumerate(paginated_images, start)]
+
+    total_pages = (len(image_filenames) + page_size - 1) // page_size
+    return templates.TemplateResponse(
+        "graphs.html",
+        {
+            "request": request,
+            "images": images,
+            "page": page,
+            "total_pages": total_pages
+        }
+    )
 
 @app.get("/winner/")
 def winner():
