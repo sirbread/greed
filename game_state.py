@@ -4,7 +4,7 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 2  #seconds
+ROUND_DURATION = 10  #seconds
 WINNING_SCORE = 10  #points to win
 
 current_round = {
