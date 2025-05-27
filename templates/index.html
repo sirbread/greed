@@ -213,11 +213,11 @@
                 } else if (data.error === "invalid") {
                     errorDiv.textContent = "invalid username gng (letters/numbers/underscores only)";
                 } else {
-                    errorDiv.textContent = "some thing happened, your thing didn't happen though 🥀";
+                    errorDiv.textContent = "some thing happened, your thing didn't happen though ";
                 }
             })
             .catch(() => {
-                errorDiv.textContent = "the server is cooked gng 🥀";
+                errorDiv.textContent = "the server is cooked gng ";
             });
         };
 
@@ -331,7 +331,12 @@
 
         function pollAwaitingSubmission() {
             if (gameEnded || !currentUser) return;
-            fetch("/awaiting/?user_id=" + currentUser.uid)
+            currentUser.getIdToken().then(token => {
+                fetch("/awaiting/", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                })
                 .then(res => res.json())
                 .then(data => {
                     const statusDiv = document.getElementById("status");
@@ -357,7 +362,8 @@
                         statusDiv.textContent = "";
                         statusDiv.classList.remove("status-in-transit");
                     }
-                })
+                });
+            });
         }
 
         function prefillAwaitingSubmission() {

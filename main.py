@@ -51,7 +51,7 @@ class Submission(BaseModel):
 
 def verify_firebase_token(authorization: str = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid Authorization header")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You're not supposed to be here...")
     token = authorization.split(" ", 1)[1]
     try:
         decoded_token = firebase_auth.verify_id_token(token)
@@ -110,18 +110,13 @@ def get_round_info():
     }
 
 @app.get("/awaiting/")
-def awaiting(user_id: str):
+def awaiting(user=Depends(verify_firebase_token)):
     ensure_round_current()
-    sub = get_awaiting_submission(user_id)
+    sub = get_awaiting_submission(user["uid"])
     if sub:
         return {"user_id": sub["user_id"], "number_selected": sub["number_selected"]}
     else:
         return {}
-
-@app.get("/awaiting/all")
-def all_awaiting():
-    ensure_round_current()
-    return current_round["awaiting_submissions"]
 
 @app.get("/final/all")
 def all_final():
