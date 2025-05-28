@@ -19,7 +19,8 @@ from game_state import (
     WINNING_SCORE,
     ROUND_DURATION,
     user_names,
-    GAME_START_TIME
+    GAME_START_TIME,
+    get_greed_rate    
 )
 from graphs import generate_round_graphs
 from datetime import datetime
@@ -202,8 +203,5 @@ def get_start_time():
 @app.get("/greed_rate/")
 def greed_rate(user=Depends(verify_firebase_token)):
     user_id = user["uid"]
-    from game_state import user_totals, round_history
-    total = user_totals.get(user_id, 0)
-    rounds_played = len(round_history)
-    avg = (total / rounds_played) if rounds_played > 0 else 0
-    return {"greed_rate": avg}
+    rate = get_greed_rate(user_id)
+    return {"greed_rate": rate}

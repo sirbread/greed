@@ -5,8 +5,8 @@ import pytz
 mst = pytz.timezone("America/Denver")
 
 ROUND_DURATION = 10  #seconds
-WINNING_SCORE = 10  #points to win
-GAME_START_TIME = datetime.now(mst) + timedelta(days=0.0001) 
+WINNING_SCORE = 100  #points to win
+GAME_START_TIME = datetime.now(mst) + timedelta(minutes=0.15) #change to days=x when !testing 
 
 current_round = {
     "round_id": 1,
@@ -17,8 +17,8 @@ current_round = {
 
 user_names = {} 
 
-user_totals = defaultdict(float) 
-round_history = []
+user_totals = defaultdict(float)  
+round_history = []  
 
 def ensure_round_current():
     now = datetime.now(mst)
@@ -71,7 +71,10 @@ def finalize_round():
             "total_score": user_totals[sub["user_id"]]
         })
     current_round["final_submissions"] = round_results
-    round_history.append(dict(counts))
+    round_history.append({
+        "counts": dict(counts),
+        "final_submissions": list(round_results)
+    })
     current_round["awaiting_submissions"] = []
 
 def calculate_scores():
@@ -97,3 +100,13 @@ def get_winner_info():
                 "score": total
             }
     return {"winner": False}
+
+def get_greed_rate(user_id):
+    total = 0
+    count = 0
+    for rnd in round_history:
+        for sub in rnd.get("final_submissions", []):
+            if sub["user_id"] == user_id:
+                total += sub["number"]
+                count += 1
+    return total / count if count else 0
