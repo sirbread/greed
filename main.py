@@ -204,4 +204,33 @@ def get_start_time():
 def greed_rate(user=Depends(verify_firebase_token)):
     user_id = user["uid"]
     rate = get_greed_rate(user_id)
-    return {"greed_rate": rate}
+    
+    if rate < 1:
+        diss = "lock in brotha, you haven't even shown up 💔 enter a number up there"
+    elif rate < 2:
+        diss = "maybe playing it too safe gng... waayyy too safe... who hurt you 🥀"
+    elif rate < 3:
+        diss = "you've been whispering numbers like they might bite. they won't. we will."
+    elif rate < 4:
+        diss = "you move like someone afraid to get picked in dodgeball. 🥀"
+    elif rate < 5:
+        diss = "*low risk, low reward, low personality*"
+    elif rate < 6:
+        diss = "this energy says 'hall monitor who snitched once and never recovered'"
+    elif rate < 7:
+        diss = "*strategic*, sure. but what an npc of a number..."
+    elif rate < 8:
+        diss = "you want to win, but you don't want it enough. it shows 🥀"
+    elif rate < 9:
+        diss = "greedy... but with a conscience. pick a side, coward"
+    elif rate < 10:
+        diss = "you think you cracked the code. but we know you'd apologize after you commit a heist. go 10, coward."
+    elif rate == 10:
+        diss = "my brother in christ, save some food for the rest of us"
+    else:
+        diss = "this isn't greed. this is art. contact support immediately (make an issue in github): https://github.com/sirbread/greed"
+
+    return {
+        "greed_rate": rate,
+        "diss": diss
+    }

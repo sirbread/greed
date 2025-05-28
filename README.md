@@ -1,7 +1,7 @@
 # greed
 do you play the game or does your greed play you? <br>
 todo: 
-- "greed rate" (average of score you submitted as final, disses you on your average)
+- ~~"greed rate" (average of score you submitted as final, disses you on your average)~~
 - chat (calling it "bluff" it seems fitting)
 - ~~help page~~
 - ~~graphs with matplotlib~~

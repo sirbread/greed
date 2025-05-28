@@ -119,6 +119,7 @@
             <div id="input-message"></div>
             <div id="status"></div>
             <div id="greed-rate"></div>
+            <div id="greedDiss" style="margin-top:0.2em;color:#ff0000;font-style:italic"></div>
         </div>
 
         <div id="scoreboard">
@@ -170,6 +171,8 @@
                     if (typeof data.greed_rate === "number") {
                         document.getElementById("greed-rate").textContent =
                             `your greed rate: ${data.greed_rate.toFixed(2)}`;
+                        document.getElementById('greedDiss').innerText = 
+                            data.diss;
                     } else {
                         document.getElementById("greed-rate").textContent = "";
                     }
