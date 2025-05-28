@@ -98,7 +98,6 @@
         <a id="graphs-link" href="/graphs">see stats</a>
 
         <div id="auth-section">
-            <button id="google-login">sign in with google</button>
             <button id="logout" style="display:none;">logout</button>
             <span id="user-info"></span>
         </div>
@@ -213,10 +212,6 @@
             auth.signOut();
         };
 
-        document.getElementById('google-login').onclick = function() {
-            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-        };
-
         document.getElementById('logout').onclick = function() {
             auth.signOut();
         };
@@ -244,63 +239,68 @@
             .catch(() => false);
         }
 
+        function checkAuthAndUsernameOrRedirect() {
+            if (!currentUser) {
+                window.location.href = '/login';
+                return;
+            }
+            currentUser.getIdToken().then(token => {
+                fetch("/whoami/", {
+                    method: "GET",
+                    headers: {"Authorization": "Bearer " + token}
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(data => {
+                    if (!data.username) {
+                        window.location.href = '/login';
+                    }
+                })
+                .catch(() => {
+                    window.location.href = '/login';
+                });
+            });
+        }
+
         auth.onAuthStateChanged(user => {
             currentUser = user;
-            if (user) {
-                document.getElementById('google-login').style.display = 'none';
-                document.getElementById('logout').style.display = 'inline-block';
-
-                user.getIdToken().then(token => {
-                    currentToken = token;
-                    fetch("/whoami/", {
-                        method: "GET",
-                        headers: {"Authorization": "Bearer " + token}
-                    })
-                    .then(res => res.ok ? res.json() : Promise.reject())
-                    .then(data => {
-                        const username = data.username;
-                        const googleName = user.displayName || user.email;
-                        const userInfoDiv = document.getElementById('user-info');
-                        if (username && googleName) {
-                            userInfoDiv.textContent = `hello ${username}! you're logged in as ${googleName}.`;
-                        } else if (googleName) {
-                            userInfoDiv.textContent = `welcome to greed! you're logged in as ${googleName}`;
-                        } else {
-                            userInfoDiv.textContent = "";
-                        }
-
-                        usernameSet = !!data.username;
-
-                        updatePregameUserInfo();
-                        updatePregameUsernameSection();
-
-                        if (!usernameSet && !pregameActive) {
-                            showUsernameSection();
-                        } else if (usernameSet && !pregameActive) {
-                            hideUsernameSection();
-                        }
-                    })
-                    .catch(() => {
-                        document.getElementById('user-info').textContent = "";
-                        usernameSet = false;
-                        if (!pregameActive) showUsernameSection();
-                        updatePregameUserInfo();
-                        updatePregameUsernameSection();
-                    });
-                });
-                // prefillAwaitingSubmission && prefillAwaitingSubmission(); 
-            } else {
-                document.getElementById('google-login').style.display = 'inline-block';
-                document.getElementById('logout').style.display = 'none';
-                document.getElementById('user-info').textContent = "";
-                document.getElementById("game").style.display = "none";
-                document.getElementById("username-section").style.display = "none";
-                updatePregameUserInfo();
-                updatePregameUsernameSection();
-                if (window.location.pathname === '/') {
-                    window.location.href = '/login';
-                }
+            if (!user) {
+                window.location.href = '/login';
+                return;
             }
+            document.getElementById('logout').style.display = 'inline-block';
+            user.getIdToken().then(token => {
+                currentToken = token;
+                fetch("/whoami/", {
+                    method: "GET",
+                    headers: {"Authorization": "Bearer " + token}
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(data => {
+                    const username = data.username;
+                    const googleName = user.displayName || user.email;
+                    const userInfoDiv = document.getElementById('user-info');
+                    if (username && googleName) {
+                        userInfoDiv.textContent = `hello ${username}! you're logged in as ${googleName}.`;
+                    } else if (googleName) {
+                        userInfoDiv.textContent = `welcome to greed! you're logged in as ${googleName}`;
+                    } else {
+                        userInfoDiv.textContent = "";
+                    }
+                    usernameSet = !!data.username;
+                    updatePregameUserInfo();
+                    updatePregameUsernameSection();
+                    if (!usernameSet) {
+                        window.location.href = '/login';
+                    } else if (!pregameActive) {
+                        hideUsernameSection();
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('user-info').textContent = "";
+                    usernameSet = false;
+                    window.location.href = '/login';
+                });
+            });
         });
 
         //fo pre game gng
