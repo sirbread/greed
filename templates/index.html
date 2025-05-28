@@ -42,6 +42,10 @@
             color: red;
             margin-top: 0.5em;
         }
+        #greed-rate {
+            margin-top: 1em;
+            font-size: 1.1em;
+        }
         #pregame-container {
             display: none;
             min-height: 60vh;
@@ -114,6 +118,7 @@
             <button onclick="submit()">submit</button>
             <div id="input-message"></div>
             <div id="status"></div>
+            <div id="greed-rate"></div>
         </div>
 
         <div id="scoreboard">
@@ -147,6 +152,29 @@
             let m = Math.floor(s/60);
             s = s % 60;
             return `${d} day${d!==1?'s':''} ${h} hour${h!==1?'s':''} ${m} minute${m!==1?'s':''} ${s} second${s!==1?'s':''}`;
+        }
+
+        function updateGreedRate() {
+            if (!currentUser) {
+                document.getElementById("greed-rate").textContent = "";
+                return;
+            }
+            currentUser.getIdToken().then(token => {
+                fetch("/greed_rate/", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (typeof data.greed_rate === "number") {
+                        document.getElementById("greed-rate").textContent =
+                            `your greed rate: ${data.greed_rate.toFixed(2)}`;
+                    } else {
+                        document.getElementById("greed-rate").textContent = "";
+                    }
+                });
+            });
         }
 
         fetch("/start_time/")
@@ -294,6 +322,7 @@
                     } else if (!pregameActive) {
                         hideUsernameSection();
                     }
+                    updateGreedRate();
                 })
                 .catch(() => {
                     document.getElementById('user-info').textContent = "";
@@ -333,6 +362,7 @@
                         `hello ${username}! you're logged in as ${googleName}.`;
                     updatePregameUserInfo();
                     updatePregameUsernameSection();
+                    updateGreedRate();
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
@@ -377,6 +407,7 @@
                         `hello ${document.getElementById("username-input").value.trim()}! you're logged in as ${googleName}.`;
                     updatePregameUserInfo();
                     updatePregameUsernameSection();
+                    updateGreedRate();
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
@@ -428,6 +459,7 @@
                 .then(res => res.json())
                 .then(() => {
                     document.getElementById("numberInput").value = value;
+                    updateGreedRate();
                 })
             });
         }
@@ -473,6 +505,7 @@
                         isSubmitting = false;
                         lastSubmittedValue = null;
                         checkForWinner();
+                        updateGreedRate();
                     }
                 });
         }

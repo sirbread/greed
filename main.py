@@ -198,3 +198,12 @@ def login_page(request: Request):
 @app.get("/start_time/")
 def get_start_time():
     return {"start_time": GAME_START_TIME.astimezone(pytz.utc).isoformat()}
+
+@app.get("/greed_rate/")
+def greed_rate(user=Depends(verify_firebase_token)):
+    user_id = user["uid"]
+    from game_state import user_totals, round_history
+    total = user_totals.get(user_id, 0)
+    rounds_played = len(round_history)
+    avg = (total / rounds_played) if rounds_played > 0 else 0
+    return {"greed_rate": avg}
