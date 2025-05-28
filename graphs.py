@@ -1,18 +1,17 @@
-import matplotlib
-matplotlib.use('Agg') 
-import matplotlib.pyplot as plt
 import os
+import matplotlib.pyplot as plt
 from datetime import datetime, timezone
 
 def generate_round_graphs(rounds_data, min_num, max_num, output_folder="static/graphs"):
     os.makedirs(output_folder, exist_ok=True)
     image_filenames = []
     for i, round_data in enumerate(rounds_data, 1):
+        counts_dict = round_data.get("counts", {})
         counts = []
         points = []
         max_y = 0
         for n in range(min_num, max_num+1):
-            count = round_data.get(n, 0)
+            count = counts_dict.get(n, 0)
             counts.append(count)
             pt = n / count if count > 0 else 0
             points.append(pt)

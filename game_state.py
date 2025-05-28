@@ -10,7 +10,7 @@ GAME_START_TIME = datetime.now(mst) + timedelta(minutes=0.15) #change to days=x 
 
 current_round = {
     "round_id": 1,
-    "end_time": datetime.now(mst) + timedelta(seconds=ROUND_DURATION),
+    "end_time": GAME_START_TIME + timedelta(seconds=ROUND_DURATION), 
     "awaiting_submissions": [],
     "final_submissions": [],
 }
@@ -22,6 +22,8 @@ round_history = []
 
 def ensure_round_current():
     now = datetime.now(mst)
+    if now < GAME_START_TIME:
+        return
     while now > current_round["end_time"]:
         finalize_round()
         reset_round()
@@ -109,4 +111,4 @@ def get_greed_rate(user_id):
             if sub["user_id"] == user_id:
                 total += sub["number"]
                 count += 1
-    return total / count if count else 0
+    return total / count if count > 0 else 0
