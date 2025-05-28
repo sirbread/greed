@@ -18,7 +18,8 @@ from game_state import (
     get_winner_info,
     WINNING_SCORE,
     ROUND_DURATION,
-    user_names
+    user_names,
+    GAME_START_TIME
 )
 from graphs import generate_round_graphs
 from datetime import datetime
@@ -193,3 +194,7 @@ def login_page(request: Request):
         "firebase_messaging_sender_id": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
         "firebase_app_id": os.getenv("FIREBASE_APP_ID"),
     })
+
+@app.get("/start_time/")
+def get_start_time():
+    return {"start_time": GAME_START_TIME.astimezone(pytz.utc).isoformat()}

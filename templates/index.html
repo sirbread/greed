@@ -42,6 +42,24 @@
             color: red;
             margin-top: 0.5em;
         }
+        #pregame-container {
+            display: none;
+            min-height: 60vh;
+            text-align: center;
+            padding-top: 15vh;
+        }
+        #pregame-timer {
+            font-size: 2.2em;
+            margin: 1em 0 1em 0;
+            color: #019239;
+        }
+        #pregame-username-section {
+            margin: 1.5em 0;
+        }
+        #pregame-username-error {
+            color: red;
+            margin-top: 0.5em;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -59,39 +77,57 @@
     </script>
 </head>
 <body>
-    <h1>pick a number (1-10, inclusive, integer)</h1>
-    <h3>first player to reach <span id="winning-score">{{ winning_score }}</span> points wins!</h3>
-    <h4 id="round-duration-desc"></h4>
-    <a id="help-link" href="/help">what is this?</a>
-    <a id="graphs-link" href="/graphs">see stats</a>
-
-    <div id="auth-section">
-        <button id="google-login">sign in with google</button>
-        <button id="logout" style="display:none;">logout</button>
-        <span id="user-info"></span>
+    <div id="pregame-container">
+        <div id="pregame-userinfo"></div>
+        <button id="pregame-logout" style="display:none;">logout</button>
+        <div style="margin-top:4em;color:#555;">greed is starting in...</div>
+        <div id="pregame-timer"></div>
+        <div id="pregame-username-section" style="display:none;">
+            <label for="pregame-username-input">enter your username:</label>
+            <input id="pregame-username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
+            <button id="pregame-username-go">go!</button>
+            <div id="pregame-username-error"></div>
+        </div>
     </div>
 
-    <div id="username-section">
-        <label for="username-input">enter your username:</label>
-        <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
-        <button id="username-go">go!</button>
-        <div id="username-error"></div>
-    </div>
+    <div id="main-content">
+        <h1>pick a number (1-10, inclusive, integer)</h1>
+        <h3>first player to reach <span id="winning-score">{{ winning_score }}</span> points wins!</h3>
+        <h4 id="round-duration-desc"></h4>
+        <a id="help-link" href="/help">what is this?</a>
+        <a id="graphs-link" href="/graphs">see stats</a>
 
-    <div id="game" style="display:none;">
-        <input type="number" id="numberInput" min="1" max="10">
-        <button onclick="submit()">submit</button>
-        <div id="input-message"></div>
-        <div id="status"></div>
-    </div>
+        <div id="auth-section">
+            <button id="google-login">sign in with google</button>
+            <button id="logout" style="display:none;">logout</button>
+            <span id="user-info"></span>
+        </div>
 
-    <div id="scoreboard">
-        <h2>leaderboard</h2>
-        <pre id="scores">loading...</pre>
+        <div id="username-section">
+            <label for="username-input">enter your username:</label>
+            <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
+            <button id="username-go">go!</button>
+            <div id="username-error"></div>
+        </div>
+
+        <div id="game" style="display:none;">
+            <input type="number" id="numberInput" min="1" max="10">
+            <button onclick="submit()">submit</button>
+            <div id="input-message"></div>
+            <div id="status"></div>
+        </div>
+
+        <div id="scoreboard">
+            <h2>leaderboard</h2>
+            <pre id="scores">loading...</pre>
+        </div>
+        <div id="timer">loading time...</div>
     </div>
-    <div id="timer">loading time...</div>
 
     <script>
+        let gameStarted = false;
+        let startTime = null;
+        let pregameInterval = null;
         let lastRoundId = null;
         let didInitialPrefill = false;
         let isSubmitting = false;
@@ -101,6 +137,81 @@
         let currentUser = null;
         let currentToken = null;
         let usernameSet = false;
+        let pregameActive = false; 
+
+        function formatCountdown(ms) {
+            let s = Math.max(0, Math.floor(ms/1000));
+            let d = Math.floor(s/86400);
+            s = s % 86400;
+            let h = Math.floor(s/3600);
+            s = s % 3600;
+            let m = Math.floor(s/60);
+            s = s % 60;
+            return `${d} day${d!==1?'s':''} ${h} hour${h!==1?'s':''} ${m} minute${m!==1?'s':''} ${s} second${s!==1?'s':''}`;
+        }
+
+        fetch("/start_time/")
+            .then(res => res.json())
+            .then(data => {
+                startTime = new Date(data.start_time);
+                checkPregameState();
+            }).catch(() => {
+                document.getElementById("pregame-container").style.display = "none";
+                document.getElementById("main-content").style.display = "";
+                pregameActive = false;
+            });
+
+        function checkPregameState() {
+            const now = new Date();
+            if (startTime && now < startTime) {
+                pregameActive = true;
+                document.getElementById("pregame-container").style.display = "block";
+                document.getElementById("main-content").style.display = "none";
+                updatePregameUserInfo();
+                updatePregameTimer();
+                updatePregameUsernameSection();
+            } else {
+                pregameActive = false;
+                document.getElementById("pregame-container").style.display = "none";
+                document.getElementById("main-content").style.display = "";
+            }
+        }
+
+        function updatePregameUserInfo() {
+            document.getElementById("pregame-userinfo").textContent = document.getElementById("user-info").textContent;
+            document.getElementById("pregame-logout").style.display =
+                document.getElementById("logout").style.display === "inline-block" ? "inline-block" : "none";
+        }
+
+        function updatePregameUsernameSection() {
+            if (!usernameSet && currentUser) {
+                document.getElementById("pregame-username-section").style.display = "block";
+            } else {
+                document.getElementById("pregame-username-section").style.display = "none";
+            }
+        }
+
+        function updatePregameTimer() {
+            const timerElem = document.getElementById("pregame-timer");
+            if (pregameInterval) clearInterval(pregameInterval);
+            function tick() {
+                const now = new Date();
+                const diff = startTime - now;
+                if (diff > 0) {
+                    timerElem.textContent = formatCountdown(diff);
+                } else {
+                    timerElem.textContent = "starting...";
+                    clearInterval(pregameInterval);
+                    setTimeout(() => location.reload(), 1200);
+                }
+            }
+            tick();
+            pregameInterval = setInterval(tick, 1000);
+        }
+
+        document.getElementById('pregame-logout').onclick = function() {
+            auth.signOut();
+        };
 
         document.getElementById('google-login').onclick = function() {
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -111,12 +222,16 @@
         };
 
         function showUsernameSection() {
-            document.getElementById("username-section").style.display = "block";
-            document.getElementById("game").style.display = "none";
+            if (!pregameActive) {
+                document.getElementById("username-section").style.display = "block";
+                document.getElementById("game").style.display = "none";
+            }
         }
         function hideUsernameSection() {
-            document.getElementById("username-section").style.display = "none";
-            document.getElementById("game").style.display = "block";
+            if (!pregameActive) {
+                document.getElementById("username-section").style.display = "none";
+                document.getElementById("game").style.display = "block";
+            }
         }
 
         function checkIfUsernameSet(token) {
@@ -155,31 +270,83 @@
                         }
 
                         usernameSet = !!data.username;
-                        if (!usernameSet) {
+
+                        updatePregameUserInfo();
+                        updatePregameUsernameSection();
+
+                        if (!usernameSet && !pregameActive) {
                             showUsernameSection();
-                        } else {
+                        } else if (usernameSet && !pregameActive) {
                             hideUsernameSection();
                         }
                     })
                     .catch(() => {
                         document.getElementById('user-info').textContent = "";
                         usernameSet = false;
-                        showUsernameSection();
+                        if (!pregameActive) showUsernameSection();
+                        updatePregameUserInfo();
+                        updatePregameUsernameSection();
                     });
                 });
-                prefillAwaitingSubmission && prefillAwaitingSubmission();
+                // prefillAwaitingSubmission && prefillAwaitingSubmission(); 
             } else {
                 document.getElementById('google-login').style.display = 'inline-block';
                 document.getElementById('logout').style.display = 'none';
                 document.getElementById('user-info').textContent = "";
                 document.getElementById("game").style.display = "none";
                 document.getElementById("username-section").style.display = "none";
+                updatePregameUserInfo();
+                updatePregameUsernameSection();
                 if (window.location.pathname === '/') {
                     window.location.href = '/login';
                 }
             }
         });
 
+        //fo pre game gng
+        document.getElementById("pregame-username-go").onclick = function() {
+            const username = document.getElementById("pregame-username-input").value.trim();
+            const errorDiv = document.getElementById("pregame-username-error");
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                errorDiv.textContent = "invalid username (letters, numbers, dashes, underscores only)";
+                return;
+            }
+            if (username.length < 2 || username.length > 20) {
+                errorDiv.textContent = "username must be 2-20 characters";
+                return;
+            }
+            errorDiv.textContent = "";
+            fetch("/set_username/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + currentToken
+                },
+                body: JSON.stringify({username})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    usernameSet = true;
+                    const googleName = currentUser.displayName || currentUser.email;
+                    document.getElementById('user-info').textContent =
+                        `hello ${username}! you're logged in as ${googleName}.`;
+                    updatePregameUserInfo();
+                    updatePregameUsernameSection();
+                } else if (data.error === "taken") {
+                    errorDiv.textContent = "this username is taken gng";
+                } else if (data.error === "invalid") {
+                    errorDiv.textContent = "invalid username gng (letters/numbers/underscores only)";
+                } else {
+                    errorDiv.textContent = "some thing happened, your thing didn't happen though ";
+                }
+            })
+            .catch(() => {
+                errorDiv.textContent = "the server is cooked gng ";
+            });
+        };
+
+        //for main game gng \/
         document.getElementById("username-go").onclick = function() {
             const username = document.getElementById("username-input").value.trim();
             const errorDiv = document.getElementById("username-error");
@@ -208,6 +375,8 @@
                     const googleName = currentUser.displayName || currentUser.email;
                     document.getElementById('user-info').textContent =
                         `hello ${document.getElementById("username-input").value.trim()}! you're logged in as ${googleName}.`;
+                    updatePregameUserInfo();
+                    updatePregameUsernameSection();
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
@@ -288,7 +457,7 @@
         }
 
         function checkRoundStatus() {
-            if (gameEnded) return;
+            if (pregameActive || gameEnded) return; // <--- don't poll during pregame dumbass
             fetch("/round/")
                 .then(res => res.json())
                 .then(data => {
@@ -309,6 +478,7 @@
         }
 
         function checkForWinner() {
+            if (pregameActive) return; // don't poll during pregame dumbass
             fetch("/winner/")
                 .then(res => res.json())
                 .then(data => {
@@ -330,7 +500,7 @@
         }
 
         function pollAwaitingSubmission() {
-            if (gameEnded || !currentUser) return;
+            if (pregameActive || gameEnded || !currentUser) return; //don't poll during pregame dumbass
             currentUser.getIdToken().then(token => {
                 fetch("/awaiting/", {
                     headers: {
