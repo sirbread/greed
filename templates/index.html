@@ -143,6 +143,9 @@
         let currentToken = null;
         let usernameSet = false;
         let pregameActive = false; 
+        let roundStatusTimeout = null;
+        let roundTimerInterval = null;
+        let roundTimeLeft = 0;
 
         function formatCountdown(ms) {
             let s = Math.max(0, Math.floor(ms/1000));
@@ -326,6 +329,7 @@
                         hideUsernameSection();
                     }
                     updateGreedRate();
+                    pollAwaitingSubmission(); 
                 })
                 .catch(() => {
                     document.getElementById('user-info').textContent = "";
@@ -366,6 +370,7 @@
                     updatePregameUserInfo();
                     updatePregameUsernameSection();
                     updateGreedRate();
+                    pollAwaitingSubmission();
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
@@ -411,6 +416,7 @@
                     updatePregameUserInfo();
                     updatePregameUsernameSection();
                     updateGreedRate();
+                    pollAwaitingSubmission();
                 } else if (data.error === "taken") {
                     errorDiv.textContent = "this username is taken gng";
                 } else if (data.error === "invalid") {
@@ -463,6 +469,7 @@
                 .then(() => {
                     document.getElementById("numberInput").value = value;
                     updateGreedRate();
+                    pollAwaitingSubmission();
                 })
             });
         }
@@ -480,6 +487,24 @@
                 })
         }
 
+        function startLocalRoundTimer(initialSeconds) {
+            if (roundTimerInterval) clearInterval(roundTimerInterval);
+            roundTimeLeft = initialSeconds;
+            updateTimerDisplay(roundTimeLeft);
+            roundTimerInterval = setInterval(() => {
+                if (gameEnded) {
+                    clearInterval(roundTimerInterval);
+                    return;
+                }
+                roundTimeLeft--;
+                if (roundTimeLeft < 0) {
+                    clearInterval(roundTimerInterval);
+                } else {
+                    updateTimerDisplay(roundTimeLeft);
+                }
+            }, 1000);
+        }
+
         function updateTimerDisplay(secondsLeft) {
             let timerDiv = document.getElementById("timer");
             if (gameEnded) {
@@ -492,11 +517,11 @@
         }
 
         function checkRoundStatus() {
-            if (pregameActive || gameEnded) return; // <--- don't poll during pregame dumbass
+            if (pregameActive || gameEnded) return;
             fetch("/round/")
                 .then(res => res.json())
                 .then(data => {
-                    updateTimerDisplay(data.time_left_seconds || 0);
+                    startLocalRoundTimer(data.time_left_seconds || 0);
                     if (lastRoundId !== data.round_id) {
                         lastRoundId = data.round_id;
                         loadScores();
@@ -510,11 +535,19 @@
                         checkForWinner();
                         updateGreedRate();
                     }
+                    scheduleNextRoundPoll(data.time_left_seconds || 0);
                 });
         }
 
+        function scheduleNextRoundPoll(timeLeftSeconds) {
+            if (roundStatusTimeout) clearTimeout(roundStatusTimeout);
+            let nextPoll = Math.max(timeLeftSeconds - 1, 2);
+            roundStatusTimeout = setTimeout(checkRoundStatus, nextPoll * 1000);
+        }
+
+
         function checkForWinner() {
-            if (pregameActive) return; // don't poll during pregame dumbass
+            if (pregameActive) return;
             fetch("/winner/")
                 .then(res => res.json())
                 .then(data => {
@@ -536,7 +569,7 @@
         }
 
         function pollAwaitingSubmission() {
-            if (pregameActive || gameEnded || !currentUser) return; //don't poll during pregame dumbass
+            if (pregameActive || gameEnded || !currentUser) return;
             currentUser.getIdToken().then(token => {
                 fetch("/awaiting/", {
                     headers: {
@@ -598,11 +631,8 @@
         }
         setRoundDurationDesc();
 
-        setInterval(checkRoundStatus, 1000)
-        setInterval(pollAwaitingSubmission, 1000)
-        loadScores()
-        checkRoundStatus()
-        pollAwaitingSubmission()
+        loadScores();
+        checkRoundStatus();
     </script>
 </body>
 </html>
