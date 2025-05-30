@@ -23,11 +23,11 @@
     <div class="center-card login-centered">
         <h1 class="rainbow-text login-username-title">login to play <span class="highlight">greed</span></h1>
         <div id="auth-section" class="username-auth-row">
-            <button id="google-login" class="fancy-btn" style="display:none;">sign in wid google</button>
-            <button id="logout" class="fancy-btn login-logout-btn">logout</button>
+            <button id="google-login" class="fancy-btn">sign in wid google</button>
+            <button id="logout" class="fancy-btn login-logout-btn" style="display:none;">logout</button>
         </div>
         <div id="hello-user" class="username-hello" style="display:none;"></div>
-        <div id="username-section">
+        <div id="username-section" style="display:none; flex-direction:column; align-items:center;">
             <label for="username-input" class="username-label">choose a username:</label>
             <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off" class="pretty-input shrink-input">
             <button id="username-go" class="fancy-btn login-go-btn">go!</button>
@@ -79,6 +79,7 @@
                     checkIfUsernameSet(token).then(isSet => {
                         usernameSet = isSet;
                         if (usernameSet) {
+                            hideUsernameSection();
                             redirectToGame();
                         } else {
                             showUsernameSection();
@@ -89,6 +90,7 @@
                 document.getElementById('hello-user').style.display = "none";
                 document.getElementById('logout').style.display = 'none';
                 document.getElementById('google-login').style.display = 'inline-block';
+                hideUsernameSection();
                 const path = window.location.pathname;
                 if (path !== '/login' && path !== '/home') {
                     window.location.href = '/home';
@@ -133,6 +135,7 @@
                 errorDiv.textContent = "the server is cooked gng ";
             });
         };
+        hideUsernameSection();
     </script>
 </body>
 </html>
