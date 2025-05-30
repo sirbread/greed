@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request, Header, HTTPException, status, Depends, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-
+import json
+from pathlib import Path
+import threading
 from game_state import (
     add_awaiting_submission,
     calculate_scores,
@@ -26,14 +28,16 @@ from graphs import generate_round_graphs
 from datetime import datetime
 import pytz
 from fastapi.staticfiles import StaticFiles
-
 import firebase_admin
 from firebase_admin import auth as firebase_auth, credentials
-
 import re 
+from profanity_filter import censor_profanity
 
 load_dotenv()
 
+CHAT_FILE = Path("chat_messages.json")
+CHAT_LOCK = threading.Lock()
+MAX_CHAT_MESSAGES = 100
 FIREBASE_ADMINSDK_JSON = os.getenv("FIREBASE_ADMINSDK_JSON")
 
 cred = credentials.Certificate(FIREBASE_ADMINSDK_JSON)
@@ -234,3 +238,55 @@ def greed_rate(user=Depends(verify_firebase_token)):
         "greed_rate": rate,
         "diss": diss
     }
+
+#chat shits
+#i've seperated the entire thing since i was tweaking mixing everything up </3
+
+
+
+def load_chat():
+    if CHAT_FILE.exists():
+        with CHAT_FILE.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_chat(messages):
+    with CHAT_LOCK:
+        with CHAT_FILE.open("w", encoding="utf-8") as f:
+            json.dump(messages[-MAX_CHAT_MESSAGES:], f)
+
+@app.get("/chat/messages/", response_class=JSONResponse)
+def get_chat_messages():
+    messages = load_chat()
+    return messages[-MAX_CHAT_MESSAGES:]
+
+@app.post("/chat/messages/", response_class=JSONResponse)
+async def post_chat_message(request: Request, user=Depends(verify_firebase_token)):
+    data = await request.json()
+    message = data.get("message", "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    message = await censor_profanity(message)
+    user_id = user["uid"]
+    username = user_names.get(user_id, user.get("name") or user.get("email") or "Anonymous")
+    entry = {
+        "username": username,
+        "message": message,
+        "timestamp": datetime.utcnow().strftime("%H:%M")
+    }
+    messages = load_chat()
+    messages.append(entry)
+    save_chat(messages)
+    return {"ok": True}
+
+@app.get("/chat", response_class=HTMLResponse)
+def get_chat(request: Request):
+    return templates.TemplateResponse("chat.html", {
+        "request": request,
+        "firebase_api_key": os.environ.get("FIREBASE_API_KEY"),
+        "firebase_auth_domain": os.environ.get("FIREBASE_AUTH_DOMAIN"),
+        "firebase_project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+        "firebase_storage_bucket": os.environ.get("FIREBASE_STORAGE_BUCKET"),
+        "firebase_messaging_sender_id": os.environ.get("FIREBASE_MESSAGING_SENDER_ID"),
+        "firebase_app_id": os.environ.get("FIREBASE_APP_ID"),
+    })

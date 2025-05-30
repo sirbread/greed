@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>greedy chat</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #header {
+            padding: 1em;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #chat-log {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid #aaa;
+            border-bottom: 1px solid #aaa;
+            padding: 8px;
+        }
+
+        #chat-form {
+            display: flex;
+            flex-shrink: 0;
+            padding: 0.5em;
+            border-top: 1px solid #aaa;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 0.5em;
+            font-size: 1em;
+        }
+
+        #chat-form button {
+            padding: 0.5em 1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="header"><h2>greedy chat</h2></div>
+        <div id="chat-log"></div>
+        <form id="chat-form" autocomplete="off">
+            <input type="text" id="chat-input" placeholder="type a message..." required />
+            <button type="submit">➤</button>
+        </form>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_api_key }}",
+            authDomain: "{{ firebase_auth_domain }}",
+            projectId: "{{ firebase_project_id }}",
+            storageBucket: "{{ firebase_storage_bucket }}",
+            messagingSenderId: "{{ firebase_messaging_sender_id }}",
+            appId: "{{ firebase_app_id }}"
+        };
+
+        const script1 = document.createElement('script');
+        script1.src = "https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js";
+        document.head.appendChild(script1);
+        const script2 = document.createElement('script');
+        script2.src = "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js";
+        document.head.appendChild(script2);
+
+        function waitForFirebaseAuthInit() {
+            return new Promise(resolve => {
+                function check() {
+                    if (window.firebase && firebase.auth) resolve();
+                    else setTimeout(check, 50);
+                }
+                check();
+            });
+        }
+
+        function appendMessage(username, message, time) {
+            const log = document.getElementById("chat-log");
+            const div = document.createElement("div");
+            const userSpan = document.createElement("b");
+            userSpan.textContent = username + ": ";
+            const textSpan = document.createElement("span");
+            textSpan.textContent = message;
+            const timeSpan = document.createElement("span");
+            timeSpan.style.float = "right";
+            timeSpan.style.color = "#888";
+            timeSpan.style.fontSize = "0.8em";
+            timeSpan.textContent = time || "";
+            div.appendChild(userSpan);
+            div.appendChild(textSpan);
+            div.appendChild(timeSpan);
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        let token = null;
+        let lastMessages = [];
+
+        function renderMessages(messages) {
+            if (JSON.stringify(messages) === JSON.stringify(lastMessages)) return;
+            lastMessages = messages;
+            const log = document.getElementById("chat-log");
+            log.innerHTML = "";
+            for (const msg of messages) {
+                appendMessage(msg.username, msg.message, msg.timestamp);
+            }
+        }
+
+        async function fetchMessages() {
+            const resp = await fetch("/chat/messages/");
+            if (resp.ok) {
+                const messages = await resp.json();
+                renderMessages(messages);
+            }
+        }
+
+        async function sendMessage(msg) {
+            if (!token) return;
+            await fetch("/chat/messages/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ message: msg })
+            });
+        }
+
+        async function startChat() {
+            await waitForFirebaseAuthInit();
+            firebase.initializeApp(firebaseConfig);
+
+            firebase.auth().onAuthStateChanged(async function(user) {
+                if (!user) {
+                    let provider = new firebase.auth.GoogleAuthProvider();
+                    await firebase.auth().signInWithPopup(provider);
+                }
+                token = await firebase.auth().currentUser.getIdToken();
+                fetchMessages();
+                setInterval(fetchMessages, 1500);
+            });
+
+            document.getElementById("chat-form").onsubmit = async function(e) {
+                e.preventDefault();
+                const input = document.getElementById("chat-input");
+                if (input.value.trim() === "") return;
+                await sendMessage(input.value);
+                input.value = "";
+                fetchMessages();
+            };
+        }
+
+        startChat();
+    </script>
+</body>
+</html>

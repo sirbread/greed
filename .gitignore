@@ -21,3 +21,4 @@ static/graphs/round_19.png
 static/graphs/round_20.png
 serviceAccountKey.json
 .env
+chat_messages.json

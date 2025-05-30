@@ -2,7 +2,7 @@
 do you play the game or does your greed play you? <br>
 todo: 
 - ~~"greed rate" (average of score you submitted as final, disses you on your average)~~
-- chat (calling it "bluff" it seems fitting)**
+- chat (calling it "bluff" it seems fitting)** (todo: fix profanity filter, add links back to and into chat)
 - ~~help page~~
 - ~~graphs with matplotlib~~
 - ~~firebase login (watch and indian tutorial guy idk how it works)~~
