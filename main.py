@@ -239,6 +239,10 @@ def greed_rate(user=Depends(verify_firebase_token)):
         "diss": diss
     }
 
+@app.get("/home", response_class=HTMLResponse)
+def home_page(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
 #chat shits
 #i've seperated the entire thing since i was tweaking mixing everything up </3
 

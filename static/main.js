@@ -143,7 +143,10 @@ function checkIfUsernameSet(token) {
 
 function checkAuthAndUsernameOrRedirect() {
     if (!currentUser) {
-        window.location.href = '/login';
+        const path = window.location.pathname;
+        if (path !== '/login' && path !== '/home') {
+            window.location.href = '/home';
+        }
         return;
     }
     currentUser.getIdToken().then(token => {
@@ -166,10 +169,17 @@ function checkAuthAndUsernameOrRedirect() {
 auth.onAuthStateChanged(user => {
     currentUser = user;
     if (!user) {
-        window.location.href = '/login';
+        const path = window.location.pathname;
+        if (path !== '/login' && path !== '/home') {
+            window.location.href = '/home';
+        }
         return;
     }
     document.getElementById('logout').style.display = 'inline-block';
+    if (document.getElementById('google-login')) {
+        document.getElementById('google-login').style.display = 'none';
+    }
+    const googleName = user.displayName || user.email;
     user.getIdToken().then(token => {
         currentToken = token;
         fetch("/whoami/", {
@@ -179,7 +189,6 @@ auth.onAuthStateChanged(user => {
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
             const username = data.username;
-            const googleName = user.displayName || user.email;
             const userInfoDiv = document.getElementById('user-info');
             if (username && googleName) {
                 userInfoDiv.textContent = `hello ${username}! you're logged in as ${googleName}.`;
@@ -189,18 +198,20 @@ auth.onAuthStateChanged(user => {
                 userInfoDiv.textContent = "";
             }
             usernameSet = !!data.username;
-            updatePregameUserInfo();
-            updatePregameUsernameSection();
+            if (typeof updatePregameUserInfo === 'function') updatePregameUserInfo();
+            if (typeof updatePregameUsernameSection === 'function') updatePregameUsernameSection();
             if (!usernameSet) {
                 window.location.href = '/login';
-            } else if (!pregameActive) {
-                hideUsernameSection();
+            } else if (typeof pregameActive === 'undefined' || !pregameActive) {
+                if (typeof hideUsernameSection === 'function') hideUsernameSection();
             }
-            updateGreedRate();
-            pollAwaitingSubmission(); 
+            if (typeof updateGreedRate === 'function') updateGreedRate();
+            if (typeof pollAwaitingSubmission === 'function') pollAwaitingSubmission();
         })
         .catch(() => {
-            document.getElementById('user-info').textContent = "";
+            if (document.getElementById('user-info')) {
+                document.getElementById('user-info').textContent = "";
+            }
             usernameSet = false;
             window.location.href = '/login';
         });

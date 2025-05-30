@@ -89,10 +89,10 @@
                     });
                 });
             } else {
-                document.getElementById('google-login').style.display = 'inline-block';
-                document.getElementById('logout').style.display = 'none';
-                document.getElementById('user-info').textContent = "";
-                hideUsernameSection();
+                const path = window.location.pathname;
+                if (path !== '/login' && path !== '/home') {
+                    window.location.href = '/home';
+                }
             }
         });
 

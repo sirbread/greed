@@ -2,7 +2,7 @@
 do you play the game or does your greed play you? <br>
 todo: 
 - ~~"greed rate" (average of score you submitted as final, disses you on your average)~~
-- chat (calling it "bluff" it seems fitting)** (todo: fix profanity filter, add links back to and into chat)
+- ~~chat (calling it "bluff" it seems fitting)** (todo: fix profanity filter, add links back to and into chat)~~
 - ~~help page~~
 - ~~graphs with matplotlib~~
 - ~~firebase login (watch and indian tutorial guy idk how it works)~~
@@ -14,11 +14,11 @@ todo:
 - ~~lower requests per second~~
 
 todo, but html pages
-- index (the actual game)
-- home.html (home page with like "login" and visuals, *redirect here if it's their first time and store in browser)
+- ~~index (the actual game)~~
+- ~~home.html (home page with like "login" and visuals, *redirect here if it's their first time and store in browser)~~
 - ~~login.html (login)~~
 - ~~graphs.html (for my stats nerds)~~
-- chat.html (bluff)**
+- ~~chat.html (bluff)**~~
 <br>
 **i really need to pack this project up, mayeb this will not be implemented unless i make it half-assed
 
