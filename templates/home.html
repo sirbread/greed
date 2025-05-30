@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>greed</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+      .home-title {
+        font-size: 6.2em;
+        letter-spacing: 0.07em;
+        text-align: center;
+        margin-bottom: 0.3em;
+        margin-top: 0.3em;
+        font-weight: 900;
+        line-height: 1.07;
+      }
+      .flipping-text {
+        font-size: 2.5em;
+        min-height: 2.8rem;
+        margin-bottom: 2em;
+        font-weight: 800;
+        color: #ffe53b;
+        text-align: center;
+        letter-spacing: 0.03em;
+        transition: opacity 0.3s;
+        line-height: 1.1;
+      }
+      .home-btn-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.3em;
+        width: 100%;
+      }
+      .center-card.home-card-pop {
+        max-width: 780px;
+        min-width: 430px;
+        min-height: 440px;
+        padding: 4em 3em 3em 3em;
+        box-shadow: 0 16px 60px 0 #0008, 0 0 0 8px #19ffd655;
+        border-radius: 32px;
+        background: rgba(32, 35, 62, 0.99);
+        transition: box-shadow 0.2s, transform 0.2s;
+        margin: 0 auto;
+        z-index: 2;
+    }
+    .center-card.home-card-pop:hover {
+        box-shadow: 0 24px 90px 0 #19ffd6cc, 0 0 0 10px #ffe53b44;
+        transform: scale(1.015) rotate(-1deg);
+    }
+      @media (max-width: 900px) {
+        .center-card.home-card-pop {
+          max-width: 98vw;
+          min-width: 0;
+          padding: 2em 1em 2em 1em;
+        }
+        .home-title {
+          font-size: 2.3em;
+        }
+        .flipping-text {
+          font-size: 1.3em;
+        }
+      }
+    </style>
+</head>
+<body class="center-viewport">
+  <div class="center-card home-card-pop login-centered">
+    <div class="home-title rainbow-text">greed</div>
+    <div class="flipping-text" id="flipping-text">a simple game of psychology</div>
+    <div class="home-btn-row">
+      <button class="fancy-btn blue" onclick="window.location.href='/login'">Login</button>
+    </div>
+  </div>
+  <script>
+      const words = ["mind reading", "strategy", "manipulation", "deception", "calculation", "gaslighting", "temptation", "hunger", "bluffing", "betrayal", "alliances", "ego"];
+      let i = 0;
+      setInterval(() => {
+          const el = document.getElementById('flipping-text');
+          el.style.opacity = 0;
+          setTimeout(() => {
+              el.textContent = `a simple game of ${words[i]}`;
+              el.style.opacity = 1;
+              i = (i + 1) % words.length;
+          }, 350);
+      }, 1800);
+  </script>
+</body>
+</html>

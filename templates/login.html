@@ -100,7 +100,7 @@
             const username = document.getElementById("username-input").value.trim();
             const errorDiv = document.getElementById("username-error");
             if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                errorDiv.textContent = "invalid username (letters, numbers, dashes, underscores only)";
+                errorDiv.textContent = "invalid username (letters, numbers, and underscores only)";
                 return;
             }
             if (username.length < 2 || username.length > 20) {
