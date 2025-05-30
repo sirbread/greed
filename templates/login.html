@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>login - greed</title>
-    <style>
-        #username-error { color: red; margin-top: 0.5em; }
-        #auth-section, #username-section { margin: 1.5em 0; }
-        button { font-family: inherit; }
-    </style>
+    <link rel="stylesheet" href="/static/main.css">
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script>
@@ -23,28 +19,28 @@
       const auth = firebase.auth();
     </script>
 </head>
-<body>
-    <h1>login to play greed</h1>
-    <div id="auth-section">
-        <button id="google-login">sign in wid google</button>
-        <button id="logout" style="display:none;">logout</button>
-        <span id="user-info"></span>
+<body class="center-viewport">
+    <div class="center-card login-centered">
+        <h1 class="rainbow-text login-username-title">login to play <span class="highlight">greed</span></h1>
+        <div id="auth-section" class="username-auth-row">
+            <button id="google-login" class="fancy-btn" style="display:none;">sign in wid google</button>
+            <button id="logout" class="fancy-btn login-logout-btn">logout</button>
+        </div>
+        <div id="hello-user" class="username-hello" style="display:none;"></div>
+        <div id="username-section">
+            <label for="username-input" class="username-label">choose a username:</label>
+            <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off" class="pretty-input shrink-input">
+            <button id="username-go" class="fancy-btn login-go-btn">go!</button>
+            <div id="username-error" class="error-text"></div>
+        </div>
     </div>
-
-    <div id="username-section" style="display:none;">
-        <label for="username-input">choose a username:</label>
-        <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
-        <button id="username-go">go!</button>
-        <div id="username-error"></div>
-    </div>
-
     <script>
         let currentUser = null;
         let currentToken = null;
         let usernameSet = false;
 
         function showUsernameSection() {
-            document.getElementById("username-section").style.display = "block";
+            document.getElementById("username-section").style.display = "flex";
         }
         function hideUsernameSection() {
             document.getElementById("username-section").style.display = "none";
@@ -76,7 +72,8 @@
             if (user) {
                 document.getElementById('google-login').style.display = 'none';
                 document.getElementById('logout').style.display = 'inline-block';
-                document.getElementById('user-info').textContent = "hello, " + (user.displayName || user.email) + "!";
+                document.getElementById('hello-user').style.display = "block";
+                document.getElementById('hello-user').innerHTML = `hello, <span class="username-yellow">${user.displayName || user.email}</span>!`;
                 user.getIdToken().then(token => {
                     currentToken = token;
                     checkIfUsernameSet(token).then(isSet => {
@@ -89,6 +86,9 @@
                     });
                 });
             } else {
+                document.getElementById('hello-user').style.display = "none";
+                document.getElementById('logout').style.display = 'none';
+                document.getElementById('google-login').style.display = 'inline-block';
                 const path = window.location.pathname;
                 if (path !== '/login' && path !== '/home') {
                     window.location.href = '/home';

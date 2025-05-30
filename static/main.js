@@ -488,6 +488,63 @@ function prefillAwaitingSubmission() {
     pollAwaitingSubmission();
 }
 
+function rainbowTextEffect(element) {
+    let hue = 0;
+    function update() {
+        const value = element.value;
+        if (!value) {
+            element.style.background = '';
+            element.style.webkitBackgroundClip = '';
+            element.style.webkitTextFillColor = '';
+            element.style.color = '#fff';
+            return;
+        }
+        const grad = `linear-gradient(90deg, 
+            hsl(${hue}, 100%, 55%) 0%,
+            hsl(${(hue+60)%360}, 100%, 55%) 25%,
+            hsl(${(hue+120)%360}, 100%, 60%) 50%,
+            hsl(${(hue+180)%360}, 100%, 60%) 75%,
+            hsl(${(hue+240)%360}, 95%, 62%) 100%)`;
+        element.style.background = grad;
+        element.style.webkitBackgroundClip = 'text';
+        element.style.webkitTextFillColor = 'transparent';
+        element.style.color = 'transparent';
+        hue = (hue + 2) % 360;
+        requestAnimationFrame(update);
+    }a
+    update();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const numInput = document.getElementById("numberInput");
+    if (numInput) {
+        numInput.classList.add("rainbow-input");
+        let hue = 0;
+        function update() {
+            if (!numInput.value) {
+                numInput.style.background = '';
+                numInput.style.webkitBackgroundClip = '';
+                numInput.style.webkitTextFillColor = '';
+                numInput.style.color = '#fff';
+                return;
+            }
+            const grad = `linear-gradient(90deg, 
+                hsl(${hue}, 100%, 60%) 0%,
+                hsl(${(hue+60)%360}, 100%, 57%) 33%,
+                hsl(${(hue+120)%360}, 100%, 60%) 66%,
+                hsl(${(hue+180)%360}, 100%, 58%) 100%)`;
+            numInput.style.background = grad;
+            numInput.style.webkitBackgroundClip = 'text';
+            numInput.style.webkitTextFillColor = 'transparent';
+            numInput.style.color = 'transparent';
+            hue = (hue + 2) % 360;
+            requestAnimationFrame(update);
+        }
+        numInput.addEventListener("input", function() { update(); });
+        update();
+    }
+});
+
 function formatDuration(seconds) {
     let parts = [];
     let h = Math.floor(seconds / 3600);

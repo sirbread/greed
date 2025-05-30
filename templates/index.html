@@ -1,70 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>greed</title>
-    <style>
-        #timer {
-            position: fixed;
-            bottom: 10px;
-            left: 0;
-            width: 100vw;
-            text-align: center;
-            font-size: 1.2em;
-            color: #333;
-            background: #fffffff0;
-            padding: 8px 0;
-            z-index: 100;
-        }
-        #scoreboard {
-            margin-top: 24px;
-        }
-        #input-message {
-            color: rgb(255, 0, 0);
-            margin-top: 0.5em;
-        }
-        #help-link, #graphs-link, #chat-link {
-            margin-bottom: 1.5em;
-            display: block;
-        }
-        .winner-message {
-            font-size: 1.3em;
-            color: green;
-            margin: 1.5em 0;
-        }
-        #auth-section {
-            margin-bottom: 1em;
-        }
-        #username-section {
-            margin: 1.5em 0;
-            display: none;
-        }
-        #username-error {
-            color: red;
-            margin-top: 0.5em;
-        }
-        #greed-rate {
-            margin-top: 1em;
-            font-size: 1.1em;
-        }
-        #pregame-container {
-            display: none;
-            min-height: 60vh;
-            text-align: center;
-            padding-top: 15vh;
-        }
-        #pregame-timer {
-            font-size: 2.2em;
-            margin: 1em 0 1em 0;
-            color: #019239;
-        }
-        #pregame-username-section {
-            margin: 1.5em 0;
-        }
-        #pregame-username-error {
-            color: red;
-            margin-top: 0.5em;
-        }
-    </style>
+    <meta name="viewport" content="width=520, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css">
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script>
@@ -80,54 +20,65 @@
       const auth = firebase.auth();
     </script>
 </head>
-<body>
-    <div id="pregame-container">
-        <div id="pregame-userinfo"></div>
-        <button id="pregame-logout" style="display:none;">logout</button>
-        <div style="margin-top:4em;color:#555;">greed is starting in...</div>
-        <div id="pregame-timer"></div>
+<body class="center-viewport">
+
+    <div id="pregame-container" style="display:none;">
+      <div class="center-card">
+        <h1 class="rainbow-text">game starting soon!</h1>
+        <div id="pregame-timer" style="text-align:center; font-size:1.35em; color:#ffe53b; font-weight:700; margin-bottom:1em;">...</div>
+        <div id="pregame-userinfo" class="username-hello" style="margin-bottom:0.5em;"></div>
+        <button id="pregame-logout" class="fancy-btn blue" style="margin-bottom:0.5em;">logout</button>
         <div id="pregame-username-section" style="display:none;">
-            <label for="pregame-username-input">enter your username:</label>
-            <input id="pregame-username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
-            <button id="pregame-username-go">go!</button>
-            <div id="pregame-username-error"></div>
+          <label for="pregame-username-input" class="username-label">choose a username:</label>
+          <input id="pregame-username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off" class="pretty-input">
+          <button id="pregame-username-go" class="fancy-btn login-go-btn">go!</button>
+          <div id="pregame-username-error" class="error-text"></div>
         </div>
+      </div>
     </div>
 
     <div id="main-content">
-        <h1>pick a number (1-10, inclusive, integer)</h1>
-        <h3>first player to reach <span id="winning-score">{{ winning_score }}</span> points wins!</h3>
-        <h4 id="round-duration-desc"></h4>
-        <a id="help-link" href="/help">what is this?</a>
-        <a id="graphs-link" href="/graphs">see stats</a>
-        <a id="graphs-link" href="/chat">bluff</a>
-
-        <div id="auth-section">
-            <button id="logout" style="display:none;">logout</button>
-            <span id="user-info"></span>
+      <div class="center-card">
+        <h1 class="rainbow-text">pick a number <span style="font-size:0.7em;font-weight:400;">(1-10, integer)</span></h1>
+        <h3 style="margin-bottom:0.7em;font-weight:700;">first player to reach <span id="winning-score" class="highlight">{{ winning_score }}</span> points wins!</h3>
+        <div id="round-duration-desc" style="margin-bottom:0.7em;font-size:1.07em;font-weight:600;"></div>
+        
+        <div class="button-row">
+            <a href="/help" class="fancy-btn orange" style="font-size:1em;">what is this?</a>
+            <a href="/graphs" class="fancy-btn purple" style="font-size:1em;">see stats</a>
+            <a href="/chat" class="fancy-btn yellow" style="font-size:1em;">bluff</a>
+            <button id="logout" class="fancy-btn blue" style="display:none;">logout</button>
         </div>
 
-        <div id="username-section">
-            <label for="username-input">enter your username:</label>
-            <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off">
-            <button id="username-go">go!</button>
-            <div id="username-error"></div>
+        <div id="user-info" class="username-hello" style="margin-bottom:0.4em;text-align:center;"></div>
+
+        <div class="pick-number-label">pick a number</div>
+
+        <div id="username-section" style="display:none;">
+            <label for="username-input" class="username-label">choose a username:</label>
+            <input id="username-input" type="text" maxlength="20" pattern="^[a-zA-Z0-9_]+$" autocomplete="off" autocapitalize="off" class="pretty-input">
+            <button id="username-go" class="fancy-btn login-go-btn">go!</button>
+            <div id="username-error" class="error-text"></div>
         </div>
 
         <div id="game" style="display:none;">
-            <input type="number" id="numberInput" min="1" max="10">
-            <button onclick="submit()">submit</button>
-            <div id="input-message"></div>
-            <div id="status"></div>
-            <div id="greed-rate"></div>
-            <div id="greedDiss" style="margin-top:0.2em;color:#ff0000;font-style:italic"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;">
+                <input type="number" id="numberInput" min="1" max="10" class="rainbow-input" autocomplete="off" placeholder="1-10">
+            </div>
+            <div class="submit-center-stack">
+                <button onclick="submit()" class="fancy-btn blue" style="margin:1.1em 0 0.4em 0;">submit</button>
+                <div id="greed-rate"></div>
+                <div id="greedDiss"></div>
+            </div>
+            <div id="input-message" class="error-text" style="text-align:center;"></div>
+            <div id="status" style="text-align:center;"></div>
         </div>
-
-        <div id="scoreboard">
-            <h2>leaderboard</h2>
-            <pre id="scores">loading...</pre>
+        <div id="timer" class="card timer-card" style="color:#ffe53b;font-size:1.18em;text-align:center;margin-bottom:1.1em;">loading time...</div>
+        <div id="scoreboard" class="card">
+            <h2 style="margin-top:0;margin-bottom:0.7em;font-size:1.2em;font-weight:700;">leaderboard</h2>
+            <pre id="scores" style="font-size:1.18em;font-family: 'Fira Mono', 'Consolas', monospace;">loading...</pre>
         </div>
-        <div id="timer">loading time...</div>
+      </div>
     </div>
 
     <script src="/static/main.js"></script>
