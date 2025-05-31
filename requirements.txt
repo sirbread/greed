@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+pydantic
+python-dotenv
+apscheduler
+pytz
+firebase-admin
+aiohttp
+matplotlib
