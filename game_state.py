@@ -6,7 +6,7 @@ mst = pytz.timezone("America/Denver")
 
 ROUND_DURATION = 86400  #seconds
 WINNING_SCORE = 100  #points to win
-GAME_START_TIME = datetime.now(mst) + timedelta(days=0.15) 
+GAME_START_TIME = datetime.now(mst) + timedelta(days=0.0001) 
 
 current_round = {
     "round_id": 1,
