@@ -40,7 +40,7 @@ CHAT_LOCK = threading.Lock()
 MAX_CHAT_MESSAGES = 100
 FIREBASE_ADMINSDK_JSON = os.getenv("FIREBASE_ADMINSDK_JSON")
 
-cred = credentials.Certificate(FIREBASE_ADMINSDK_JSON)
+cred = credentials.Certificate(json.loads(FIREBASE_ADMINSDK_JSON))
 firebase_admin.initialize_app(cred)
 
 app = FastAPI()
