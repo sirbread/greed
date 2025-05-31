@@ -274,3 +274,23 @@ input.rainbow-input {
     gap: 12px;
     z-index: 100;
 }
+
+.pfp-tooltip {
+  display: none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 54px;
+  background: #222;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.97em;
+  white-space: pre-line;
+  box-shadow: 0 2px 8px #0008;
+  z-index: 101;
+  pointer-events: none;
+  min-width: 200px;
+  max-width: 200px;
+  text-align: center;
+}

@@ -168,14 +168,72 @@ function checkAuthAndUsernameOrRedirect() {
 
 auth.onAuthStateChanged(user => {
     currentUser = user;
+    const pfpImg = document.getElementById('pfp');
+    const pfpTooltip = document.getElementById('pfp-tooltip');
+    if (pfpImg) {
+        if (user && user.photoURL) {
+            pfpImg.src = user.photoURL;
+            pfpImg.style.display = 'block';
+        } else if (user) {
+            pfpImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email || 'U');
+            pfpImg.style.display = 'block';
+        } else {
+            pfpImg.style.display = 'none';
+        }
+    }
+    if (pfpImg && pfpTooltip) {
+        if (user) {
+            const googleName = user.displayName || user.email;
+            user.getIdToken().then(token => {
+                currentToken = token;
+                fetch("/whoami/", {
+                    method: "GET",
+                    headers: {"Authorization": "Bearer " + token}
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(data => {
+                    const username = data.username;
+                    if (username && googleName) {
+                        pfpTooltip.textContent = `hello ${username}!\nlogged in as ${googleName}.`;
+                    } else if (googleName) {
+                        pfpTooltip.textContent = `you're logged in as ${googleName}`;
+                    } else {
+                        pfpTooltip.textContent = '';
+                    }
+                });
+            });
+        } else {
+            pfpTooltip.textContent = '';
+        }
+        pfpImg.onmouseenter = () => {
+            if (pfpTooltip.textContent.trim()) pfpTooltip.style.display = 'block';
+        };
+        pfpImg.onmouseleave = () => {
+            pfpTooltip.style.display = 'none';
+        };
+        pfpImg.onclick = () => {
+            if (pfpTooltip.style.display === 'block') {
+                pfpTooltip.style.display = 'none';
+            }
+        };
+    }
+
     if (!user) {
         const path = window.location.pathname;
         if (path !== '/login' && path !== '/home') {
             window.location.href = '/home';
         }
+        if (document.getElementById('logout')) {
+            document.getElementById('logout').style.display = 'none';
+        }
+        if (document.getElementById('google-login')) {
+            document.getElementById('google-login').style.display = 'block';
+        }
         return;
     }
-    document.getElementById('logout').style.display = 'inline-block';
+    if (document.getElementById('logout')) {
+        document.getElementById('logout').style.display = 'inline-block';
+    }
     if (document.getElementById('google-login')) {
         document.getElementById('google-login').style.display = 'none';
     }
@@ -189,14 +247,6 @@ auth.onAuthStateChanged(user => {
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
             const username = data.username;
-            const userInfoDiv = document.getElementById('user-info');
-            if (username && googleName) {
-                userInfoDiv.textContent = `hello ${username}! you're logged in as ${googleName}.`;
-            } else if (googleName) {
-                userInfoDiv.textContent = `welcome to greed! you're logged in as ${googleName}`;
-            } else {
-                userInfoDiv.textContent = "";
-            }
             usernameSet = !!data.username;
             if (typeof updatePregameUserInfo === 'function') updatePregameUserInfo();
             if (typeof updatePregameUsernameSection === 'function') updatePregameUsernameSection();
