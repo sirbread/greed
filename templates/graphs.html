@@ -1,29 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>greed graphs</title>
+    <meta name="viewport" content="width=520, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css">
     <style>
-        body { max-width: 900px; margin: 2em auto; }
-        .graph-img { margin-bottom: 3em; border: 1px solid #aaa; background: #ffffff; }
-        h2 { margin-bottom: 0.3em; }
-        a { color: #287; }
+        .graph-img {
+            margin-bottom: 2.2em;
+            border-radius: 10px;
+            border: 1.5px solid #282a45;
+            background: #22233b;
+            box-shadow: 0 4px 18px #0005;
+            width: 100%;
+            max-width: 800px;
+            display: block;
+        }
+        .graph-container {
+            background: rgba(32, 35, 62, 0.98);
+            border-radius: 22px;
+            box-shadow: 0 8px 44px 0 #0005;
+            max-width: 900px;
+            width: 98vw;
+            margin: 6vh auto 2.5em auto;
+            padding: 3.2em 2.8em 2.8em 2.8em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5em;
+        }
+        .graph-container h1 {
+            font-size: 2em;
+            margin: 0.2em 0 0.6em 0;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff4e50, #ffa940, #43e97b, #38f9d7, #19ffd6, #ffe53b, #ff9a00, #c471ed, #12c2e9, #ff4e50 110%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-anim 6s linear infinite;
+            text-align: center;
+        }
+        .graph-container h2 {
+            margin-bottom: 0.3em;
+            font-size: 1.22em;
+            color: #ffe53b;
+            font-weight: 700;
+        }
+        .back-link {
+            margin-bottom: 1.3em;
+            align-self: flex-start;
+            font-size: 1em;
+            color: #19ffd6;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.16s;
+        }
+        .back-link:hover, .back-link:focus {
+            color: #ffe53b;
+        }
+        .paginator {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2em;
+        }
+        .paginator a {
+            font-size: 1em;
+            font-weight: 700;
+            color: #19ffd6;
+            text-decoration: none;
+            padding: 0.45em 1.6em;
+            border-radius: 0.6em;
+            background: linear-gradient(90deg, #12c2e9 20%, #c471ed 80%);
+            transition: color 0.15s, background 0.18s;
+            box-shadow: 0 2px 14px 0 #12c2e944;
+        }
+        .paginator a:hover, .paginator a:focus {
+            color: #ffe53b;
+            background: linear-gradient(90deg, #ffe53b 30%, #ff9a00 90%);
+        }
+        @media (max-width: 1100px) {
+            .graph-container {
+                max-width: 99vw;
+            }
+            .graph-img {
+                max-width: 99vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .graph-container {
+                padding: 1.1em 0.4em 1.1em 0.4em;
+            }
+        }
+        @keyframes rainbow-anim {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
     </style>
 </head>
-<body>
-    <a href = "/">←←←←← back to game</a>
-    <h1>stats for nerds</h1>
-    {% for image, idx in images %}
-        <h2>round {{ idx }}</h2>
-        <img class="graph-img" src="/static/graphs/{{ image }}" alt="Round {{ idx }} graph">
-    {% endfor %}
-
-    <div style="margin-top:2em;">
-        {% if page > 1 %}
-            <a href="/graphs?page={{ page - 1 }}">← previous</a>
-        {% endif %}
-        {% if page < total_pages %}
-            <a style="float:right;" href="/graphs?page={{ page + 1 }}">next →</a>
-        {% endif %}
+<body class="center-viewport">
+    <div class="graph-container">
+        <a href="/" class="back-link">← back to game</a>
+        <h1>stats for nerds</h1>
+        {% for image, idx in images %}
+            <h2>round {{ idx }}</h2>
+            <img class="graph-img" src="/static/graphs/{{ image }}" alt="Round {{ idx }} graph">
+        {% endfor %}
+        <div class="paginator">
+            <div>
+            {% if page > 1 %}
+                <a href="/graphs?page={{ page - 1 }}">← previous</a>
+            {% endif %}
+            </div>
+            <div>
+            {% if page < total_pages %}
+                <a href="/graphs?page={{ page + 1 }}">next →</a>
+            {% endif %}
+            </div>
+        </div>
     </div>
 </body>
 </html>
