@@ -441,7 +441,7 @@ function checkForWinner() {
 function showWinner(name, id, score) {
     const gameDiv = document.getElementById("game");
     gameDiv.innerHTML = `<div class="winner-message">
-    congratulations <b>${name}</b> (ID: ${id})!<br>
+    congratulations <b>${name}</b>!<br>
     you won with a score of ${score}.
     </div>`;
 }

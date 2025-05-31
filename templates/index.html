@@ -22,6 +22,10 @@
 </head>
 <body class="center-viewport">
 
+    <div id="user-bar" style="position:absolute; top:18px; right:18px; display:flex; align-items:center; gap:12px; z-index:100;">
+        <button id="logout" class="fancy-btn blue" style="display:none;">logout</button>
+    </div>
+
     <div id="pregame-container" style="display:none;">
       <div class="center-card">
         <h1 class="rainbow-text">game starting soon!</h1>
@@ -40,17 +44,17 @@
     <div id="main-content">
       <div class="center-card">
         <h1 class="rainbow-text">pick a number <span style="font-size:0.7em;font-weight:400;">(1-10, integer)</span></h1>
-        <h3 style="margin-bottom:0.7em;font-weight:700;">first player to reach <span id="winning-score" class="highlight">{{ winning_score }}</span> points wins!</h3>
+        <div id="user-info" class="username-hello" style="margin-bottom:0.7em; text-align:center; color:#ffe53b; font-weight:600;"></div>
+        <h3 style="margin-bottom:0.7em;font-weight:700;">
+          first player to reach <span id="winning-score" class="highlight">{{ winning_score }}</span> points wins!
+        </h3>
         <div id="round-duration-desc" style="margin-bottom:0.7em;font-size:1.07em;font-weight:600;"></div>
         
         <div class="button-row">
             <a href="/help" class="fancy-btn orange" style="font-size:1em;">what is this?</a>
             <a href="/graphs" class="fancy-btn purple" style="font-size:1em;">see stats</a>
             <a href="/chat" class="fancy-btn yellow" style="font-size:1em;">bluff</a>
-            <button id="logout" class="fancy-btn blue" style="display:none;">logout</button>
         </div>
-
-        <div id="user-info" class="username-hello" style="margin-bottom:0.4em;text-align:center;"></div>
 
         <div class="pick-number-label">pick a number</div>
 
