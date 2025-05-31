@@ -19,6 +19,13 @@
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
     </script>
+    <style>
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    </style>
 </head>
 <body class="center-viewport">
 
@@ -27,7 +34,7 @@
         <img id="pfp" src="" alt="profile"
             style="width:45px;height:45px;border-radius:50%;display:none;
             object-fit:cover;box-shadow:0 1px 6px #0004;transform:translateY(-3.5px);cursor:pointer;">
-        <span id="pfp-tooltip" class="pfp-tooltip" style="display:none;position:absolute;left:50%;transform:translateX(-50%);top:54px;background:#222;color:#fff;padding:8px 14px;border-radius:8px;font-size:0.97em;white-space:pre-line;box-shadow:0 2px 8px #0008;z-index:101;pointer-events:none;"></span>
+        <span id="pfp-tooltip" class="pfp-tooltip" style="display:none;position:absolute;left:50%;transform:translateX(-50%);top:54px;background:#222;color:#fff;padding:8px 14px;border-radius:8px;box-shadow:0 2px 8px #0008;z-index:101;pointer-events:none;min-width:200px;max-width:200px;text-align:center;"></span>
     </div>
     <button id="logout" class="fancy-btn blue" style="display:none;">logout</button>
 </div>
@@ -50,7 +57,7 @@
     <div id="main-content">
       <div class="center-card">
         <h1 class="rainbow-text">pick a number <span style="font-size:0.7em;font-weight:400;">(1-10, integer)</span></h1>
-        <div id="user-info" class="username-hello" style="margin-bottom:0.0em; text-align:center; color:#ffe53b; font-weight:0;"></div>
+        <div id="user-info"></div>
         <h3 style="margin-bottom:0.7em;font-weight:700;">
           first player to reach <span id="winning-score" class="highlight">{{ winning_score }}</span> points wins!
         </h3>
@@ -73,7 +80,15 @@
 
         <div id="game" style="display:none;">
             <div style="display:flex;flex-direction:column;align-items:center;">
-                <input type="number" id="numberInput" min="1" max="10" class="rainbow-input" autocomplete="off" placeholder="1-10">
+                <input
+                  type="text"
+                  id="numberInput"
+                  class="rainbow-input"
+                  autocomplete="off"
+                  placeholder="1-10"
+                  maxlength="2"
+                  inputmode="numeric"
+                  pattern="^\d{1,2}$">
             </div>
             <div class="submit-center-stack">
                 <button onclick="submit()" class="fancy-btn blue" style="margin:1.1em 0 0.4em 0;">submit</button>
@@ -92,5 +107,16 @@
     </div>
 
     <script src="/static/main.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const numInput = document.getElementById("numberInput");
+        if (numInput) {
+            numInput.addEventListener("input", function(e) {
+                let val = numInput.value.replace(/\D/g, "").slice(0,2);
+                numInput.value = val;
+            });
+        }
+    });
+    </script>
 </body>
 </html>
