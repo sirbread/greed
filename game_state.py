@@ -4,9 +4,9 @@ import pytz
 
 mst = pytz.timezone("America/Denver")
 
-ROUND_DURATION = 10  #seconds
+ROUND_DURATION = 86400  #seconds
 WINNING_SCORE = 100  #points to win
-GAME_START_TIME = datetime.now(mst) + timedelta(minutes=0.15) #change to days=x when !testing 
+GAME_START_TIME = datetime.now(mst) + timedelta(days=7) 
 
 current_round = {
     "round_id": 1,
