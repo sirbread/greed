@@ -99,8 +99,7 @@ h1.rainbow-text,
 .fancy-btn.purple { background: linear-gradient(90deg, #845ec2, #00c9a7); }
 .fancy-btn.yellow { background: linear-gradient(90deg, #ffe53b, #ff9a00); }
 .fancy-btn.blue { background: linear-gradient(90deg, #12c2e9 0%, #00eaff 100%); color: #fff; font-weight: 700; }
-
-input.pretty-input, input.rainbow-input, #numberInput.rainbow-input {
+input.rainbow-input, #numberInput.rainbow-input {
     font-size: 3.5em;
     width: 4.5em;
     height: 2.5em;
@@ -116,6 +115,25 @@ input.pretty-input, input.rainbow-input, #numberInput.rainbow-input {
     outline: none;
     transition: box-shadow 0.18s, background 0.18s;
     letter-spacing: 0.07em;
+    caret-color: #ffe53b;
+    box-sizing: border-box;
+}
+
+.pretty-input {
+    font-size: 1.09em;
+    width: em;
+    height: 3em;
+    max-width: 100%;
+    padding: 0.35em 0.7em;
+    margin: 0.5em 0 0.4em 0;
+    border: none;
+    border-radius: 0.5em;
+    background: rgba(45, 50, 82, 0.85);
+    box-shadow: 0 2px 8px 0 #0002 inset;
+    color: #f7f7fa;
+    text-align: center;
+    outline: none;
+    letter-spacing: 0.05em;
     caret-color: #ffe53b;
     box-sizing: border-box;
 }
