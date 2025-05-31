@@ -1,18 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>greed help</title>
-    <!--add style soon gng -->
+    <meta name="viewport" content="width=520, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+/*copy pasted the styling from main.css and other shits i really don't give a fuck anymore*/
+        .help-container {
+            background: rgba(32, 35, 62, 0.98);
+            border-radius: 22px;
+            box-shadow: 0 8px 44px 0 #0005;
+            max-width: 510px;
+            width: 98vw;
+            margin: 7vh auto;
+            padding: 2.5em 2.2em 2.2em 2.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5em;
+        }
+        .help-container h1 {
+            font-size: 2em;
+            margin: 0.2em 0 0.5em 0;
+            text-align: center;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff4e50, #ffa940, #43e97b, #38f9d7, #19ffd6, #ffe53b, #ff9a00, #c471ed, #12c2e9, #ff4e50 110%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-anim 6s linear infinite;
+        }
+        .help-container p {
+            font-size: 1.13em;
+            color: #f7f7fa;
+            margin: 0.6em 0 0.6em 0;
+            text-align: left;
+            width: 100%;
+        }
+        .help-container code {
+            font-size: 1.13em;
+            font-family: 'Fira Mono', 'Consolas', monospace;
+            background: #181927;
+            color: #ffe53b;
+            padding: 0.2em 0.45em;
+            border-radius: 6px;
+            margin: 0.1em 0;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .help-back-link {
+            margin-bottom: 1.5em;
+            align-self: flex-start;
+            font-size: 1em;
+            color: #19ffd6;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.16s;
+        }
+        .help-back-link:hover, .help-back-link:focus {
+            color: #ffe53b;
+        }
+        @media (max-width: 600px) {
+            .help-container {
+                max-width: 99vw;
+                width: 99vw;
+                padding: 1.1em 0.4em 1.1em 0.4em;
+            }
+        }
+        @keyframes rainbow-anim {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+    </style>
 </head>
-<body>
-    <a href="/">go back</a>
-    <h1>how to play?</h1>
-    <p>the game of greed is a simple game of psychology and strategy. in rounds (which can vary in length), pick and integer number between what's given on the game page, i.e. 1 to 10.</p>
-    <p>at the end of the round, a calculation is performed to determine how many points you earn. the number of points is defined by:</p>
-    <p>
-        <code>(number picked) / (number of people choosing the number)</code>
-    </p>
-    <p>for example, if 4 people choose the number 20, each will receive 20 / 4 = 5 points. If only 1 person chooses the number 9, that person will receive 9 / 1 = 9 points. notice how even though the person who chose 9 picked a number less than 20, that person still gains more points as the number 9 was picked less.</p>
-    <p>the current game will end when a player gets some amount of points idk it's still being made</p>
-</body>    
+<body class="center-viewport">
+    <div class="help-container">
+        <a href="/" class="help-back-link">&larr; go back</a>
+        <h1 class="rainbow-text">how to play?</h1>
+        <p>
+            the game of greed is very simple. in rounds (which can vary in length), pick an integer number between 1 to 10.
+        </p>
+        <p>
+            at the end of the round, a calculation is performed to determine how many points you earn. the number of points is defined by:
+        </p>
+        <code>(number picked) / (# of people choosing the number)</code>
+        <p>
+            for example, if 4 people choose the number 20, each will receive 20 / 4 = 5 points. if only 1 person chooses the number 9, that person will receive 9 / 1 = 9 points. notice how even though the person who chose 9 picked a number less than 20, that person still gains more points as the number 9 was picked less.
+        </p>
+        <p>
+            the current game will end when a player gets some amount of points (idk, it's still being made)
+        </p>
+    </div>
+</body>
 </html>
