@@ -147,8 +147,7 @@ input.rainbow-input {
     font-size: 1.07em;
 }
 
-#user-info,
-.username-hello {
+#user-info{
     font-size: 1.14em;
     color: #ffe53b;
     font-weight: 600;
@@ -216,11 +215,6 @@ input.rainbow-input {
     gap: 1.2em;
     margin-bottom: 0.25em;
     width: 100%;
-}
-
-.username-hello {
-    margin-top: 0em;
-    margin-bottom: 1.1em;
 }
 
 .username-yellow {
@@ -293,4 +287,34 @@ input.rainbow-input {
   min-width: 200px;
   max-width: 200px;
   text-align: center;
+}
+
+.center-card .rainbow-text {
+    margin-bottom: 0.06em !important;
+}
+.center-card .rainbow-text + h3 {
+    margin-top: 0.04em !important;
+    margin-bottom: 0.23em !important;
+}
+.center-card h3 + #round-duration-desc {
+    margin-top: 0.10em !important;
+    margin-bottom: 0.22em !important;
+}
+.center-card #round-duration-desc + .button-row {
+    margin-top: 0.09em !important;
+}
+.center-card .button-row {
+    margin-bottom: 0.33em !important;
+}
+.center-card .pick-number-label {
+    margin-top: 0.18em !important;
+    margin-bottom: 0.06em !important; 
+}
+.center-card .pick-number-label + #username-section,
+.center-card .pick-number-label + #game {
+    margin-top: 0.03em !important; 
+}
+
+#timer.timer-card {
+    margin-bottom: 0.55em !important;
 }
