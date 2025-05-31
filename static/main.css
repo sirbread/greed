@@ -50,7 +50,7 @@ h1, h2, h3, h4 {
 h1.rainbow-text,
 .login-username-title {
     font-size: 2.15em !important;
-    margin-bottom: 0.24em;
+    margin-bottom: 0.1em;
     letter-spacing: 0.04em;
     font-weight: 900;
     text-align: center;
@@ -104,8 +104,8 @@ input.rainbow-input, #numberInput.rainbow-input {
     width: 4.5em;
     height: 2.5em;
     max-width: 100%;
-    padding: 0.2em 0.05em;
-    margin: 1em 0 0.7em 0;
+    padding: 0em 0em;
+    margin: 0em 0 0em 0;
     border: none;
     border-radius: 0.45em;
     background: rgba(30, 34, 56, 0.85);
@@ -120,7 +120,7 @@ input.rainbow-input, #numberInput.rainbow-input {
 }
 
 .pretty-input {
-    font-size: 1.09em;
+    font-size: 1.5em;
     width: em;
     height: 3em;
     max-width: 100%;
